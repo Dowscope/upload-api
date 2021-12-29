@@ -1,8 +1,11 @@
 const express  = require('express');
-const cors = require('cors');
 const multer = require('multer');
+const bp = require('body-parser');
 const fs = require('fs');
+const dj = require('downloadjs');
 const { send } = require('process');
+const { Console } = require('console');
+const download = require('downloadjs');
 
 const app = express();
 
@@ -37,8 +40,23 @@ app.get('/list', function(req, res) {
     if (err) {
       throw err;
     }
-    console.log(res.status);
     res.send(files);
+  })
+});
+
+app.use(bp.json());
+
+app.post('/download', (req, res) => {
+  fileName = req.body['fileName'];
+  filePath = __dirname + '/uploads/' + fileName;
+  console.log(filePath);
+  fs.stat(filePath, function(err, stat) {
+    if (err == null){
+      download(filePath);
+      res.send('OK');
+    } else {
+      res.send(err);
+    }
   })
 });
 
