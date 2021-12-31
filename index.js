@@ -2,10 +2,9 @@ const express  = require('express');
 const multer = require('multer');
 const bp = require('body-parser');
 const fs = require('fs');
-const dj = require('downloadjs');
 const { send } = require('process');
 const { Console } = require('console');
-const download = require('downloadjs');
+const path = require('path');
 
 const app = express();
 
@@ -49,11 +48,11 @@ app.use(bp.json());
 app.post('/download', (req, res) => {
   fileName = req.body['fileName'];
   filePath = __dirname + '/uploads/' + fileName;
-  console.log(filePath);
   fs.stat(filePath, function(err, stat) {
     if (err == null){
-      download(filePath);
-      res.send('OK');
+      const data = fs.readFileSync(filePath);
+      res.send(data.toString('base64'));
+      // res.sendFile(filePath);
     } else {
       res.send(err);
     }
