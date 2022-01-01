@@ -5,6 +5,7 @@ const fs = require('fs');
 const { send } = require('process');
 const { Console } = require('console');
 const path = require('path');
+const { registerRuntimeCompiler } = require('vue');
 
 const app = express();
 
@@ -33,12 +34,40 @@ const upload = multer({storage: storage});
 app.post('/uploads', upload.single('file'), (req, res) => {
   res.json({ file: req.file });
   const timestamp = new Date(Date.now());
-  const year = timestamp.getFullYear();
-  const month = timestamp.getMonth();
-  const day = timestamp.getDate();
-  const hours = timestamp.getHours();
-  const minutes = timestamp.getMinutes();
-  console.log(year + '-' + month + '-' + day + ' ' + hours + ':' + minutes);
+  const fileEntry = {
+    fileName: req.file.filename,
+    uploaded: timestamp.toDateString() + ' ' + timestamp.toLocaleTimeString(),
+    timestamp: timestamp,
+  }
+  fs.stat('./fileList.json', (err, stat) => {
+    if (err) {
+      console.log('file doesnt exist');
+      const obj = {
+        files: [
+          fileEntry,
+        ],
+      }
+      const jsonStr = JSON.stringify(obj);
+      fs.writeFile('fileList.json', jsonStr, (wriErr) => {
+        if (wriErr) {
+          console.log(wriErr);
+        } else {
+          console.log('File created successfully');
+        }
+      });
+    } else {
+      console.log('file exists');
+      fs.readFile('fileList.json', (readErr, data) => {
+        if (readErr) {
+          console.log(readErr);
+        } else {
+          list = JSON.parse(data)
+          list.files.push(fileEntry);
+          console.log(list);
+        }
+      })
+    }
+  })
 });
 
 app.get('/list', function(req, res) {
