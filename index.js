@@ -32,6 +32,13 @@ const upload = multer({storage: storage});
 
 app.post('/uploads', upload.single('file'), (req, res) => {
   res.json({ file: req.file });
+  const timestamp = new Date(Date.now());
+  const year = timestamp.getFullYear();
+  const month = timestamp.getMonth();
+  const day = timestamp.getDate();
+  const hours = timestamp.getHours();
+  const minutes = timestamp.getMinutes();
+  console.log(year + '-' + month + '-' + day + ' ' + hours + ':' + minutes);
 });
 
 app.get('/list', function(req, res) {
