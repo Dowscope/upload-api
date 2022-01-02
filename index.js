@@ -36,6 +36,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
     fileName: req.file.filename,
     uploaded: timestamp.toDateString() + ' ' + timestamp.toLocaleTimeString(),
     timestamp: timestamp,
+    downloaded: false,
   }
   fs.stat('./fileList.json', (err, stat) => {
     if (err) {
@@ -59,7 +60,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
         } else {
           var list = JSON.parse(data)
           list.push(fileEntry);
-          const jsonStr = JSON.stringify(obj);
+          const jsonStr = JSON.stringify(list);
           fs.writeFile('fileList.json', jsonStr, (wriErr) => {
             if (wriErr) {
               res.send(wriErr);
@@ -94,19 +95,40 @@ app.post('/download', (req, res) => {
   fileName = req.body['fileName'];
   filePath = __dirname + '/uploads/' + fileName;
   fs.stat(filePath, function(err, stat) {
-    if (err == null){
+    if (err){
+      res.send(err);
+    } else {
+      fs.readFile('fileList.json', (readErr, data) => {
+        if (readErr) {
+          res.send(readErr);
+          return;
+        } else {
+          var list = JSON.parse(data)
+          var fileFound = list.filter( (item) => {
+            return item.fileName == fileName;
+          });
+          
+          console.log(fileFound);
+          // const jsonStr = JSON.stringify(obj);
+          // fs.writeFile('fileList.json', jsonStr, (wriErr) => {
+          //   if (wriErr) {
+          //     res.send(wriErr);
+          //     return;
+          //   } else {
+          //     console.log('File added successfully');
+          //   }
+          // });
+        }
+      });
       const data = fs.readFileSync(filePath);
       res.send(data.toString('base64'));
-      // res.sendFile(filePath);
-    } else {
-      res.send(err);
     }
   })
 });
 
 app.use(function(err, req, res, next) {
   if (err.code === "LIMIT_FILE_TYPES"){
-    res.status(422).json({ error: "Only ZIP files are allowed" })
+    res.status(422).json({ error: "Only game files are allowed" })
     return;
   }
 });
