@@ -5,7 +5,6 @@ const fs = require('fs');
 const { send } = require('process');
 const { Console } = require('console');
 const path = require('path');
-const { registerRuntimeCompiler } = require('vue');
 
 const app = express();
 
@@ -32,7 +31,6 @@ const storage = multer.diskStorage({
 const upload = multer({storage: storage});
 
 app.post('/uploads', upload.single('file'), (req, res) => {
-  res.json({ file: req.file });
   const timestamp = new Date(Date.now());
   const fileEntry = {
     fileName: req.file.filename,
@@ -41,41 +39,52 @@ app.post('/uploads', upload.single('file'), (req, res) => {
   }
   fs.stat('./fileList.json', (err, stat) => {
     if (err) {
-      console.log('file doesnt exist');
-      const obj = {
-        files: [
+      const obj = [
           fileEntry,
-        ],
-      }
+      ]
       const jsonStr = JSON.stringify(obj);
       fs.writeFile('fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
-          console.log(wriErr);
+          res.send(wriErr);
+          return
         } else {
           console.log('File created successfully');
         }
       });
     } else {
-      console.log('file exists');
       fs.readFile('fileList.json', (readErr, data) => {
         if (readErr) {
-          console.log(readErr);
+          res.send(readErr);
+          return;
         } else {
-          list = JSON.parse(data)
-          list.files.push(fileEntry);
-          console.log(list);
+          var list = JSON.parse(data)
+          list.push(fileEntry);
+          const jsonStr = JSON.stringify(obj);
+          fs.writeFile('fileList.json', jsonStr, (wriErr) => {
+            if (wriErr) {
+              res.send(wriErr);
+              return;
+            } else {
+              console.log('File added successfully');
+            }
+          });
         }
-      })
+      });
     }
-  })
+  });
+  res.json({ file: req.file });
 });
 
 app.get('/list', function(req, res) {
-  fs.readdir('./uploads', (err, files) => {
-    if (err) {
-      throw err;
+  fs.readFile('fileList.json', (readErr, data) => {
+    if (readErr) {
+      res.send(readErr);
+      return;
+    } else {
+      var list = JSON.parse(data);
+      const jsonLst = JSON.stringify(list);
+      res.send(jsonLst);
     }
-    res.send(files);
   })
 });
 
