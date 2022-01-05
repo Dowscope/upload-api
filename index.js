@@ -108,7 +108,9 @@ app.post('/download', (req, res) => {
             return item.fileName == fileName;
           });
           
-          console.log(fileFound);
+          delete list;
+          console.log(list);
+
           // const jsonStr = JSON.stringify(obj);
           // fs.writeFile('fileList.json', jsonStr, (wriErr) => {
           //   if (wriErr) {
