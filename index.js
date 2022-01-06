@@ -10,8 +10,9 @@ const { isTemplateNode } = require('@vue/compiler-core');
 const app = express();
 
 const fileFilter = function(req, file, cb){
-  const allowedTypes = ["application/zip"];
-  if (!allowedTypes.includes(file.mimetype)){
+  const allowedTypes = ["application/zip", "application/octet-stream"];
+  if (!allowedTypes.includes(file.mimetype)
+  || file.name.slice(-3) === 'crp') {
     const error = new Error("Wrong file type");
     error.code = "LIMIT_FILE_TYPES";
     return cb(error, false);
