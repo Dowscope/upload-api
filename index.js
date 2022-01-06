@@ -5,6 +5,7 @@ const fs = require('fs');
 const { send } = require('process');
 const { Console } = require('console');
 const path = require('path');
+const { isTemplateNode } = require('@vue/compiler-core');
 
 const app = express();
 
@@ -98,30 +99,49 @@ app.post('/download', (req, res) => {
     if (err){
       res.send(err);
     } else {
+      var list = {};
+      var updateAry = false;
       fs.readFile('fileList.json', (readErr, data) => {
         if (readErr) {
           res.send(readErr);
           return;
         } else {
-          var list = JSON.parse(data)
+          list = JSON.parse(data)
           var fileFound = list.filter( (item) => {
             return item.fileName == fileName;
           });
           
-          delete list;
-          console.log(list);
+          const index = list.indexOf(fileFound[0]);
+          delete list[index];
 
-          // const jsonStr = JSON.stringify(obj);
-          // fs.writeFile('fileList.json', jsonStr, (wriErr) => {
-          //   if (wriErr) {
-          //     res.send(wriErr);
-          //     return;
-          //   } else {
-          //     console.log('File added successfully');
-          //   }
-          // });
+          
+          var tempArry = [];
+          for (let i of list) {
+            i && tempArry.push(i);
+          }
+
+          list = tempArry;
+          
+          fileFound.downloaded = true;
+          list.push(fileFound[0]);
+
+          updateAry = true;
         }
       });
+      
+      console.log(list);
+      if (updateAry) {
+        const jsonStr = JSON.stringify(list);
+        fs.writeFile('fileList.json', jsonStr, (wriErr) => {
+          if (wriErr) {
+            console.log(wriErr);
+            res.send(wriErr);
+            return;
+          } else {
+            console.log('File added successfully');
+          }
+        });
+      }
       const data = fs.readFileSync(filePath);
       res.send(data.toString('base64'));
     }
