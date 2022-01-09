@@ -48,7 +48,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
       fs.writeFile('fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
           res.send(wriErr);
-          return
+          return;
         } else {
           console.log('File created successfully');
         }
@@ -59,7 +59,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
           res.send(readErr);
           return;
         } else {
-          var list = JSON.parse(data)
+          var list = JSON.parse(data);
           list.push(fileEntry);
           const jsonStr = JSON.stringify(list);
           fs.writeFile('fileList.json', jsonStr, (wriErr) => {
@@ -99,53 +99,44 @@ app.post('/download', (req, res) => {
     if (err){
       res.send(err);
     } else {
-      var list = {};
-      var updateAry = false;
       fs.readFile('fileList.json', (readErr, data) => {
         if (readErr) {
           res.send(readErr);
           return;
         } else {
-          list = JSON.parse(data)
+          var list = JSON.parse(data)
           var fileFound = list.filter( (item) => {
             return item.fileName == fileName;
           });
-          
           const index = list.indexOf(fileFound[0]);
           delete list[index];
-
-          
           var tempArry = [];
           for (let i of list) {
             i && tempArry.push(i);
           }
-
           list = tempArry;
           
-          fileFound.downloaded = true;
+          fileFound[0].downloaded = true;
           list.push(fileFound[0]);
 
-          updateAry = true;
+          console.log(list);
+
+          const jsonStr = JSON.stringify(list);
+          fs.writeFile('fileList.json', jsonStr, (wriErr) => {
+            if (wriErr) {
+              console.log(wriErr);
+              res.send(wriErr);
+              return;
+            } else {
+              console.log('File added successfully');
+            }
+          });
         }
       });
-      
-      console.log(list);
-      if (updateAry) {
-        const jsonStr = JSON.stringify(list);
-        fs.writeFile('fileList.json', jsonStr, (wriErr) => {
-          if (wriErr) {
-            console.log(wriErr);
-            res.send(wriErr);
-            return;
-          } else {
-            console.log('File added successfully');
-          }
-        });
-      }
       const data = fs.readFileSync(filePath);
       res.send(data.toString('base64'));
     }
-  })
+  });
 });
 
 app.use(function(err, req, res, next) {
