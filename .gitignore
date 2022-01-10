@@ -1,4 +1,4 @@
 /node_modules
 /uploads
 .vscode
-fileList.json
+./fileList.json
