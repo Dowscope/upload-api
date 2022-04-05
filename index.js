@@ -90,6 +90,19 @@ app.get('/list', function(req, res) {
   })
 });
 
+app.get('/leaders', function(req, res) {
+  fs.readFile('standing.json', (readErr, data) => {
+    if (readErr) {
+      res.send(readErr);
+      return;
+    } else {
+      var list = JSON.parse(data);
+      const jsonLst = JSON.stringify(list);
+      res.send(jsonLst);
+    }
+  })
+});
+
 app.use(bp.json());
 
 app.post('/download', (req, res) => {
