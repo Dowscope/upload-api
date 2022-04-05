@@ -91,7 +91,7 @@ app.get('/list', function(req, res) {
 });
 
 app.get('/leaders', function(req, res) {
-  fs.readFile('standing.json', (readErr, data) => {
+  fs.readFile('standings.json', (readErr, data) => {
     if (readErr) {
       res.send(readErr);
       return;
