@@ -2,8 +2,6 @@ const express  = require('express');
 const multer = require('multer');
 const bp = require('body-parser');
 const fs = require('fs');
-const { send } = require('process');
-const { Console } = require('console');
 const path = require('path');
 
 const app = express();
@@ -90,19 +88,6 @@ app.get('/list', function(req, res) {
   })
 });
 
-app.get('/leaders', function(req, res) {
-  fs.readFile('standings.json', (readErr, data) => {
-    if (readErr) {
-      res.send(readErr);
-      return;
-    } else {
-      var list = JSON.parse(data);
-      const jsonLst = JSON.stringify(list);
-      res.send(jsonLst);
-    }
-  })
-});
-
 app.use(bp.json());
 
 app.post('/download', (req, res) => {
@@ -128,7 +113,7 @@ app.post('/download', (req, res) => {
             i && tempArry.push(i);
           }
           list = tempArry;
-          
+
           fileFound[0].downloaded = true;
           list.push(fileFound[0]);
 
