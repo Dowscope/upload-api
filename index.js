@@ -31,10 +31,13 @@ const upload = multer({storage: storage});
 
 app.post('/uploads', upload.single('file'), (req, res) => {
   const timestamp = new Date(Date.now());
-  console.log(timestamp + ': File Being Uploaded');
+  const estOptions = { timeZone: 'America/New_York' };
+  const estTimeString = timestamp.toLocaleString('en-US', estOptions);
+
+  console.log(estTimeString + ': File Being Uploaded');
   const fileEntry = {
     fileName: req.file.filename,
-    uploaded: timestamp.toDateString() + ' ' + timestamp.toLocaleTimeString(),
+    uploaded: estTimeString.toDateString() + ' ' + timestamp.toLocaleTimeString(),
     timestamp: timestamp,
     downloaded: false,
   }
