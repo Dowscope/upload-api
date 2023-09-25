@@ -33,8 +33,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
   const timestamp = new Date(Date.now());
   const estOptions = { timeZone: 'America/New_York' };
   const estTimeString = timestamp.toLocaleString('en-US', estOptions);
-
-  console.log(estTimeString + ': File Being Uploaded');
+  console.log(estTimeString + ': ' + req.file.filename + ' File Being Uploaded');
   const fileEntry = {
     fileName: req.file.filename,
     uploaded: estTimeString.toDateString() + ' ' + timestamp.toLocaleTimeString(),
@@ -43,6 +42,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
   }
   fs.stat('./fileList.json', (err, stat) => {
     if (err) {
+      console.log('JSON File not found... creating now');
       const obj = [
           fileEntry,
       ]
@@ -52,10 +52,11 @@ app.post('/uploads', upload.single('file'), (req, res) => {
           res.send(wriErr);
           return;
         } else {
-          console.log('File created successfully');
+          console.log('JSON File created successfully');
         }
       });
     } else {
+      console.log('JSON File found... Adding Entry');
       fs.readFile('fileList.json', (readErr, data) => {
         if (readErr) {
           res.send(readErr);
@@ -76,6 +77,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
       });
     }
   });
+  console.log('Upload Complete');
   res.json({ file: req.file});
 });
 
