@@ -40,41 +40,29 @@ app.post('/uploads', upload.single('file'), (req, res) => {
     timestamp: timestamp,
     downloaded: false,
   }
-  console.log('Checking if JSON File exists');
-  fs.stat('./fileList.json', (err, stats) => {
-    if (err) {
-      console.log('JSON File not found... creating now');
-      const obj = [
-          fileEntry,
-      ]
-      const jsonStr = JSON.stringify(obj);
+  fs.readFile('fileList.json', (readErr, data) => {
+    if (readErr) {
+      fs.writeFile('fileList.json', jsonStr, (wriErr) => {
+        if (wriErr) {
+          console.log('JSON File not found... creating now');
+          const obj = [
+            fileEntry,
+          ]
+          const jsonStr = JSON.stringify(obj);
+        } else {
+          console.log('JSON File created successfully');
+        }
+      });
+    } else {
+      var list = JSON.parse(data);
+      list.push(fileEntry);
+      const jsonStr = JSON.stringify(list);
       fs.writeFile('fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
           res.send(wriErr);
           return;
         } else {
-          console.log('JSON File created successfully');
-        }
-      });
-    } 
-    else {
-      console.log('JSON File found... Adding Entry');
-      fs.readFile('fileList.json', (readErr, data) => {
-        if (readErr) {
-          res.send(readErr);
-          return;
-        } else {
-          var list = JSON.parse(data);
-          list.push(fileEntry);
-          const jsonStr = JSON.stringify(list);
-          fs.writeFile('fileList.json', jsonStr, (wriErr) => {
-            if (wriErr) {
-              res.send(wriErr);
-              return;
-            } else {
-              console.log('File added successfully');
-            }
-          });
+          console.log('File added successfully');
         }
       });
     }
