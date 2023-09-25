@@ -40,7 +40,8 @@ app.post('/uploads', upload.single('file'), (req, res) => {
     timestamp: timestamp,
     downloaded: false,
   }
-  fs.stat('./fileList.json', (err, stat) => {
+  console.log('Checking if JSON File exists');
+  fs.stat('./fileList.json', (err, stats) => {
     if (err) {
       console.log('JSON File not found... creating now');
       const obj = [
@@ -55,7 +56,8 @@ app.post('/uploads', upload.single('file'), (req, res) => {
           console.log('JSON File created successfully');
         }
       });
-    } else {
+    } 
+    else {
       console.log('JSON File found... Adding Entry');
       fs.readFile('fileList.json', (readErr, data) => {
         if (readErr) {
