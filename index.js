@@ -36,7 +36,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
   console.log(estTimeString + ': ' + req.file.filename + ' File Being Uploaded');
   const fileEntry = {
     fileName: req.file.filename,
-    uploaded: estTimeString.toDateString() + ' ' + timestamp.toLocaleTimeString(),
+    uploaded: estTimeString.toDateString(),
     timestamp: timestamp,
     downloaded: false,
   }
