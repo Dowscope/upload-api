@@ -44,13 +44,15 @@ app.post('/uploads', upload.single('file'), (req, res) => {
   fs.readFile('fileList.json', (readErr, data) => {
     console.log('Here2');
     if (readErr) {
+      console.log('JSON File not found... creating now');
+      const obj = [
+        fileEntry,
+      ]
+      const jsonStr = JSON.stringify(obj);
       fs.writeFile('fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
-          console.log('JSON File not found... creating now');
-          const obj = [
-            fileEntry,
-          ]
-          const jsonStr = JSON.stringify(obj);
+          res.send(wriErr);
+          return;
         } else {
           console.log('JSON File created successfully');
         }
