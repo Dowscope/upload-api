@@ -2,3 +2,4 @@
 /uploads/*
 .vscode
 fileList.json
+*.log

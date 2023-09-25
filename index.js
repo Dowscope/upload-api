@@ -7,7 +7,7 @@ const path = require('path');
 const app = express();
 
 const fileFilter = function(req, file, cb){
-  const allowedTypes = ["application/zip", "application/octet-stream"];
+  const allowedTypes = ["application/zip", "application/octet-stream", "text/markdown"];
   if (!allowedTypes.includes(file.mimetype)
   || file.name.slice(-3) === 'crp') {
     const error = new Error("Wrong file type");
@@ -36,7 +36,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
   console.log(estTimeString + ': ' + req.file.filename + ' File Being Uploaded');
   const fileEntry = {
     fileName: req.file.filename,
-    uploaded: estTimeString.toDateString(),
+    uploaded: estTimeString,
     timestamp: timestamp,
     downloaded: false,
   }
