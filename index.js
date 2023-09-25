@@ -40,7 +40,9 @@ app.post('/uploads', upload.single('file'), (req, res) => {
     timestamp: timestamp,
     downloaded: false,
   }
+  console.log('Here1');
   fs.readFile('fileList.json', (readErr, data) => {
+    console.log('Here2');
     if (readErr) {
       fs.writeFile('fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
