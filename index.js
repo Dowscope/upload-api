@@ -40,16 +40,14 @@ app.post('/uploads', upload.single('file'), (req, res) => {
     timestamp: timestamp,
     downloaded: false,
   }
-  console.log('Here1');
-  fs.readFile('fileList.json', (readErr, data) => {
-    console.log('Here2');
+  fs.readFile(__dirname + 'fileList.json', (readErr, data) => {
     if (readErr) {
       console.log('JSON File not found... creating now');
       const obj = [
         fileEntry,
       ]
       const jsonStr = JSON.stringify(obj);
-      fs.writeFile('fileList.json', jsonStr, (wriErr) => {
+      fs.writeFile(__dirname + 'fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
           res.send(wriErr);
           return;
@@ -61,7 +59,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
       var list = JSON.parse(data);
       list.push(fileEntry);
       const jsonStr = JSON.stringify(list);
-      fs.writeFile('fileList.json', jsonStr, (wriErr) => {
+      fs.writeFile(__dirname + 'fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
           res.send(wriErr);
           return;
@@ -70,13 +68,13 @@ app.post('/uploads', upload.single('file'), (req, res) => {
         }
       });
     }
+    console.log('Upload Complete');
   });
-  console.log('Upload Complete');
   res.json({ file: req.file});
 });
 
 app.get('/list', function(req, res) {
-  fs.readFile('fileList.json', (readErr, data) => {
+  fs.readFile(__dirname + 'fileList.json', (readErr, data) => {
     if (readErr) {
       res.send(readErr);
       return;
@@ -97,7 +95,7 @@ app.post('/download', (req, res) => {
     if (err){
       res.send(err);
     } else {
-      fs.readFile('fileList.json', (readErr, data) => {
+      fs.readFile(__dirname + 'fileList.json', (readErr, data) => {
         if (readErr) {
           res.send(readErr);
           return;
@@ -120,7 +118,7 @@ app.post('/download', (req, res) => {
           console.log(list);
 
           const jsonStr = JSON.stringify(list);
-          fs.writeFile('fileList.json', jsonStr, (wriErr) => {
+          fs.writeFile(__dirname + 'fileList.json', jsonStr, (wriErr) => {
             if (wriErr) {
               console.log(wriErr);
               res.send(wriErr);
