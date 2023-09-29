@@ -3,8 +3,10 @@ const multer = require('multer');
 const bp = require('body-parser');
 const fs = require('fs');
 const fb = require('node-firebird');
+const cors = require('cors');
 
 const app = express();
+app.use(cors);
 
 const fileFilter = function(req, file, cb){
   const allowedTypes = ["application/zip", "application/octet-stream", "text/markdown"];
