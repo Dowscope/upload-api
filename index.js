@@ -3,8 +3,15 @@ const multer = require('multer');
 const bp = require('body-parser');
 const fs = require('fs');
 const fb = require('node-firebird');
+const cors = require('cors');
 
 const app = express();
+
+const corsOptions = {
+  origin: 'http://localhost:8080',
+}
+
+app.use(cors(corsOptions));
 
 const fileFilter = function(req, file, cb){
   const allowedTypes = ["application/zip", "application/octet-stream", "text/markdown"];
@@ -143,8 +150,33 @@ app.post('/download', (req, res) => {
   });
 });
 
-app.post('/login', (req, res) => {
-  res.send("Connected");
+app.post('/remove', (req, res) => {
+  const filename = req.body['filename'];
+
+  fs.readFile(__dirname + '/fileList.json', (readErr, data) => {
+    if (readErr) {
+      console.log ("REMOVE: " + readErr);
+      res.send(readErr);
+      return;
+    }
+    var list = JSON.parse(data)
+    var fileFound = list.filter( (item) => {
+      return item.fileName != filename;
+    });
+    list = fileFound;
+
+    const jsonStr = JSON.stringify(list);
+    fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
+      if (wriErr) {
+        console.log("REMOVED: " + wriErr);
+        res.send(wriErr);
+        return;
+      } else {
+        console.log('File Removed successfully');
+      }
+    });
+    res.send(filename + " Removed");
+  });
 });
 
 app.use(function(err, req, res, next) {
