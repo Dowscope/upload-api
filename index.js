@@ -3,7 +3,6 @@ const multer = require('multer');
 const bp = require('body-parser');
 const fs = require('fs');
 const fb = require('node-firebird');
-const cors = require('cors');
 
 const app = express();
 
@@ -155,5 +154,4 @@ app.use(function(err, req, res, next) {
   }
 });
 
-app.use(cors);
 app.listen(55000, () => console.log("Running on port: 55000"));
