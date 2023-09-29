@@ -64,6 +64,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
       const jsonStr = JSON.stringify(obj);
       fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
+          console.log('Error creating JSON File');
           res.send(wriErr);
           return;
         } else {
@@ -76,6 +77,7 @@ app.post('/uploads', upload.single('file'), (req, res) => {
       const jsonStr = JSON.stringify(list);
       fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
+          console.log('Error writing to JSON File');
           res.send(wriErr);
           return;
         } else {
@@ -91,11 +93,13 @@ app.post('/uploads', upload.single('file'), (req, res) => {
 app.get('/list', function(req, res) {
   fs.readFile(__dirname + '/fileList.json', (readErr, data) => {
     if (readErr) {
+      console.log("LIST ERROR: " + readErr);
       res.send(readErr);
       return;
     } else {
       var list = JSON.parse(data);
       const jsonLst = JSON.stringify(list);
+      console.log("LIST requested");
       res.send(jsonLst);
     }
   })
@@ -106,8 +110,10 @@ app.use(bp.json());
 app.post('/download', (req, res) => {
   fileName = req.body['fileName'];
   filePath = __dirname + '/uploads/' + fileName;
+  console.log('Trying to download ' + filePath);
   fs.stat(filePath, function(err, stat) {
     if (err){
+      console.log('File not found: ' + filePath);
       res.send(err);
     } else {
       fs.readFile(__dirname + '/fileList.json', (readErr, data) => {
