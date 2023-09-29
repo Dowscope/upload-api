@@ -2,7 +2,7 @@ const express  = require('express');
 const multer = require('multer');
 const bp = require('body-parser');
 const fs = require('fs');
-const path = require('path');
+const fb = require('node-firebird');
 
 const app = express();
 
@@ -26,6 +26,14 @@ const storage = multer.diskStorage({
   },
   fileFilter
 });
+
+const fb_options = {
+  host: 'dowscopemedia.ca',
+  port: 3050,
+  database: '/data/dow.fdb', 
+  user: 'SYSDBA',
+  password: 'masterkey' 
+};
 
 const upload = multer({storage: storage});
 
@@ -133,6 +141,10 @@ app.post('/download', (req, res) => {
       res.send(data.toString('base64'));
     }
   });
+});
+
+app.post('/login', (req, res) => {
+  res.send("Connected");
 });
 
 app.use(function(err, req, res, next) {
