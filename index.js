@@ -7,11 +7,11 @@ const cors = require('cors');
 
 const app = express();
 
-const corsOptions = {
-  origin: 'http://localhost:8080',
-}
+// const corsOptions = {
+//   origin: 'http://localhost:8080',
+// }
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 const fileFilter = function(req, file, cb){
   const allowedTypes = ["application/zip", "application/octet-stream", "text/markdown"];
