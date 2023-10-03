@@ -105,6 +105,23 @@ app.get('/list', function(req, res) {
   })
 });
 
+app.get('/list_music', function(req, res) {
+  fs.readdir('/store/Music/Records/fileList.json', (readErr, data) => {
+    if (readErr) {
+      console.log("LIST MUSIC ERROR: " + readErr);
+      res.send(readErr);
+      return;
+    }
+    const fileList = files.map((file, index) => ({
+      id: index + 1,
+      name: file,
+    }));
+    const fileListJSON = JSON.stringify(fileList, null, 2);
+    console.log("LIST MUSIC requested");
+    res.send(fileListJSON);
+  })
+});
+
 app.use(bp.json());
 
 app.post('/download', (req, res) => {
