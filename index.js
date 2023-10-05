@@ -122,7 +122,7 @@ app.get('/list_music', function(req, res) {
       const data = fs.statSync(filePath)
       fileList.push({
         fileName: file,
-        uploaded: stats.mtime,
+        uploaded: data.mtime,
         timestamp: null,
         downloaded: null,
       });
