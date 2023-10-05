@@ -125,13 +125,14 @@ app.get('/list_music', function(req, res) {
           res.send(readErr);
           return;
         }
-        fileList.push({
+        return {
           fileName: file,
           uploaded: stats.mtime,
           timestamp: null,
           downloaded: null,
-        })
+        };
       });
+      fileList.push(data)
     });
 
     const fileListJSON = JSON.stringify(fileList);
