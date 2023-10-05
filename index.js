@@ -2,6 +2,7 @@ const express  = require('express');
 const multer = require('multer');
 const bp = require('body-parser');
 const fs = require('fs');
+const path = require('path');
 const fb = require('node-firebird');
 const cors = require('cors');
 
@@ -106,16 +107,33 @@ app.get('/list', function(req, res) {
 });
 
 app.get('/list_music', function(req, res) {
-  fs.readdir('/store/Music/Records/fileList.json', (readErr, data) => {
+  const dirPath = '/store/Music/Records/';
+  fs.readdir(dirPath, (readErr, files) => {
     if (readErr) {
       console.log("LIST MUSIC ERROR: " + readErr);
       res.send(readErr);
       return;
     }
-    const fileList = files.map((file, index) => ({
-      id: index + 1,
-      name: file,
-    }));
+
+    const fileList = [];
+
+    files.forEach(file => {
+      const filePath = path.join(__dirname, file);
+      const data = fs.stat(filePath, (statErr, stats) => {
+        if (statErr) {
+          console.log("LIST MUSIC ERROR: " + readErr);
+          res.send(readErr);
+          return;
+        }
+        fileList.push({
+          fileName: file,
+          uploaded: stats.mtime,
+          timestamp: null,
+          downloaded: null,
+        })
+      });
+    });
+
     const fileListJSON = JSON.stringify(fileList, null, 2);
     console.log("LIST MUSIC requested");
     res.send(fileListJSON);
