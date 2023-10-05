@@ -134,7 +134,7 @@ app.get('/list_music', function(req, res) {
       });
     });
 
-    const fileListJSON = JSON.stringify(fileList, null, 2);
+    const fileListJSON = JSON.stringify(fileList);
     console.log("LIST MUSIC requested");
     res.send(fileListJSON);
   })
