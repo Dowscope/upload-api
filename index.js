@@ -118,14 +118,16 @@ app.get('/list_music', function(req, res) {
     const fileList = [];
 
     files.forEach(file => {
-      const filePath = path.join(dirPath, file);
-      const data = fs.statSync(filePath)
-      fileList.push({
-        fileName: file,
-        uploaded: data.mtime,
-        timestamp: null,
-        downloaded: null,
-      });
+      if (file[0] != '.'){
+        const filePath = path.join(dirPath, file);
+        const data = fs.statSync(filePath)
+        fileList.push({
+          fileName: file,
+          uploaded: data.mtime,
+          timestamp: null,
+          downloaded: null,
+        });
+      }
     });
 
     const fileListJSON = JSON.stringify(fileList);
