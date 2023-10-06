@@ -142,6 +142,7 @@ app.post('/download', (req, res) => {
   fileName = req.body['fileName'];
   dl_type = req.body['dl_type'];
   filepath = ""
+  console.log('dltype: ' + dl_type);
   if (dl_type === 'music'){
     filePath = '/store/Music/Records/' + fileName;
   } else {
