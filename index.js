@@ -140,13 +140,21 @@ app.use(bp.json());
 
 app.post('/download', (req, res) => {
   fileName = req.body['fileName'];
-  filePath = __dirname + '/uploads/' + fileName;
+  dl_type = req.body['dl_type'];
+  filepath = ""
+  if (dl_type === 'music'){
+    filePath = '/store/Music/Records/' + fileName;
+  } else {
+    filePath = __dirname + '/uploads/' + fileName;
+  }
   console.log('Trying to download ' + filePath);
   fs.stat(filePath, function(err, stat) {
     if (err){
       console.log('File not found: ' + filePath);
       res.send(err);
-    } else {
+      return;
+    } 
+    if (dl_type != 'music') {
       fs.readFile(__dirname + '/fileList.json', (readErr, data) => {
         if (readErr) {
           res.send(readErr);
@@ -181,9 +189,9 @@ app.post('/download', (req, res) => {
           });
         }
       });
-      const data = fs.readFileSync(filePath);
-      res.send(data.toString('base64'));
     }
+    const data = fs.readFileSync(filePath);
+    res.send(data.toString('base64'));
   });
 });
 
