@@ -41,7 +41,6 @@ const fb_options = {
   database: '/data/dow.fdb', 
   user: 'SYSDBA',
   password: 'masterkey',
-  wirecrypt: 'Disabled'
 };
 
 const pool = fb.pool(5, fb_options);
