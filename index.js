@@ -8,11 +8,11 @@ const cors = require('cors');
 
 const app = express();
 
-// const corsOptions = {
-//   origin: 'http://localhost:8080',
-// }
-
-// app.use(cors(corsOptions));
+app.use(cors({
+  origin: ['http://localhost:55000', 'http://dowscopemedia.ca'],
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 const fileFilter = function(req, file, cb){
   const allowedTypes = ["application/zip", "application/octet-stream", "text/markdown"];
@@ -40,8 +40,11 @@ const fb_options = {
   port: 3050,
   database: '/data/dow.fdb', 
   user: 'SYSDBA',
-  password: 'masterkey' 
+  password: 'masterkey',
+  wirecrypt: 'Disabled'
 };
+
+const pool = fb.pool(5, fb_options);
 
 const upload = multer({storage: storage});
 
@@ -134,6 +137,32 @@ app.get('/list_music', function(req, res) {
     console.log("LIST MUSIC requested");
     res.send(fileListJSON);
   })
+});
+
+app.get('/checkUser', function(req, res) {
+  const user = "admin";
+  const pass = "hello";
+  const query = 'SELECT * FROM USERS WHERE USERNAME = ? AND PASSWORD = ?';
+  res.send(query)
+  // pool.get(function(err, db) {
+  //   if (err) {
+  //     console.log(err);
+  //     res.send(err);
+  //     return;
+  //   }
+  //   db.query(query, [user, pass], function(err, result) {
+  //     if (err) {
+  //       console.log(err);
+  //       res.send(err);
+  //       return;
+  //     }
+  //     if (result.length > 0) {
+  //       res.send('true');
+  //     } else {
+  //       res.send('false');
+  //     }
+  //   });
+  // });
 });
 
 app.use(bp.json());
