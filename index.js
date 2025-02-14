@@ -143,26 +143,25 @@ app.get('/checkUser', function(req, res) {
   const user = "admin";
   const pass = "hello";
   const query = 'SELECT * FROM USERS WHERE USERNAME = ? AND PASSWORD = ?';
-  res.send(query)
-  // pool.get(function(err, db) {
-  //   if (err) {
-  //     console.log(err);
-  //     res.send(err);
-  //     return;
-  //   }
-  //   db.query(query, [user, pass], function(err, result) {
-  //     if (err) {
-  //       console.log(err);
-  //       res.send(err);
-  //       return;
-  //     }
-  //     if (result.length > 0) {
-  //       res.send('true');
-  //     } else {
-  //       res.send('false');
-  //     }
-  //   });
-  // });
+  pool.get(function(err, db) {
+    if (err) {
+      console.log(err);
+      res.send(err);
+      return;
+    }
+    db.query(query, [user, pass], function(err, result) {
+      if (err) {
+        console.log(err);
+        res.send(err);
+        return;
+      }
+      if (result.length > 0) {
+        res.send('true');
+      } else {
+        res.send('false');
+      }
+    });
+  });
 });
 
 app.use(bp.json());
