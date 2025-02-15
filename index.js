@@ -3,10 +3,17 @@ const multer = require('multer');
 const bp = require('body-parser');
 const fs = require('fs');
 const path = require('path');
-const fb = require('node-firebird');
 const cors = require('cors');
+const mysql = require('mysql2');
 
 const app = express();
+
+const pool = mysql.createPool({
+  host: '192.168.0.235',
+  user: 'dbuser',
+  password: 'Qwerty2017',
+  database: 'RTS'
+});
 
 app.use(cors({
   origin: ['http://localhost:55000', 'http://dowscopemedia.ca'],
@@ -34,16 +41,6 @@ const storage = multer.diskStorage({
   },
   fileFilter
 });
-
-const fb_options = {
-  host: 'dowscopemedia.ca',
-  port: 3050,
-  database: 'dow', 
-  user: 'SYSDBA',
-  password: 'masterkey'
-};
-
-const pool = fb.pool(5, fb_options);
 
 const upload = multer({storage: storage});
 
@@ -141,26 +138,15 @@ app.get('/list_music', function(req, res) {
 app.get('/checkUser', function(req, res) {
   const user = "admin";
   const pass = "hello";
-  const query = 'SELECT * FROM USERS WHERE USERNAME = ? AND PASSWORD = ?';
-  pool.get(function(err, db) {
+  const query = 'SELECT * FROM USERS';
+
+  pool.query(query, (err, results) => {
     if (err) {
-      console.log(err);
-      res.send(err);
-      return;
+      console.error("Query Error: ", err.stack);
+      return res.status(500).json({error: 'Query Failed'})
     }
-    db.query(query, [user, pass], function(err, result) {
-      if (err) {
-        console.log(err);
-        res.send(err);
-        return;
-      }
-      if (result.length > 0) {
-        res.send('true');
-      } else {
-        res.send('false');
-      }
-    });
-  });
+    res.json(results);
+  },
 });
 
 app.use(bp.json());
