@@ -38,7 +38,7 @@ const storage = multer.diskStorage({
 const fb_options = {
   host: 'dowscopemedia.ca',
   port: 3050,
-  database: '/data/dow.fdb', 
+  database: 'dow.fdb', 
   user: 'SYSDBA',
   password: 'masterkey',
   wirecrypt: 'Disabled'
