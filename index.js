@@ -146,7 +146,7 @@ app.get('/checkUser', function(req, res) {
       return res.status(500).json({error: 'Query Failed'})
     }
     res.json(results);
-  },
+  });
 });
 
 app.use(bp.json());
