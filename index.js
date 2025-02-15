@@ -142,7 +142,7 @@ app.get('/checkUser', function(req, res) {
 
   pool.query(query, (err, results) => {
     if (err) {
-      console.error("Query Error: ", err.stack);
+      console.error("Query Error: ", err);
       return res.status(500).json({error: 'Query Failed'})
     }
     res.json(results);
