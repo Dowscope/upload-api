@@ -35,6 +35,11 @@ async function verifyPassword(plainPassword, hashedPassword) {
   }
 }
 
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
 app.use(cors({
   origin: ['http://localhost:55000', 'http://dowscopemedia.ca'],
   methods: ['GET', 'POST'],
@@ -157,18 +162,28 @@ app.get('/list_music', function(req, res) {
 
 app.use(bp.json());
 
-app.post('/checkUser', async function(req, res) {
-  const { username, password } = req.body;
+const sanitizeEmail = (email) => email.trim().toLowerCase();
 
-  if (!username || !password) {
+app.post('/checkUser', async function(req, res) {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
+  // Validate email format
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
+  // Sanitize email
+  email = sanitizeEmail(email);
+
   const hash_password = await hashPassword(password);
 
-  const query = 'SELECT password FROM USERS WHERE username = ? AND password = ?';
+  const query = 'SELECT password FROM USERS WHERE email = ?';
 
-  pool.query(query, [username, hash_password], async (err, results) => {
+  pool.query(query, [email, hash_password], async (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
       return res.status(500).json({ error: 'Query Failed' });
