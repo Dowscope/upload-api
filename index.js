@@ -191,7 +191,7 @@ app.post('/checkUser', async function(req, res) {
       return res.status(500).json({ error: 'Query Failed' });
     }
 
-    console.log('Results: ', results[0]);
+    console.log('Results: ', results);
     if (results.length > 0) {
       const isSuccess = await verifyPassword(hash_password, results[0].password);
       console.log('Success: ', isSuccess);
