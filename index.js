@@ -178,14 +178,11 @@ app.post('/checkUser', async function(req, res) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
-  // Sanitize email
-  var clean_email = sanitizeEmail(email);
-
   const hash_password = await hashPassword(password);
 
   const query = 'SELECT password FROM USERS WHERE email = ?';
 
-  pool.query(query, [clean_email], async (err, results) => {
+  pool.query(query, [email], async (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
       return res.status(500).json({ error: 'Query Failed' });
