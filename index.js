@@ -155,7 +155,7 @@ app.get('/list_music', function(req, res) {
   })
 });
 
-app.get('/checkUser', function(req, res) {
+app.post('/checkUser', function(req, res) {
   const { username, password } = req.body;
 
   if (!username || !password) {
