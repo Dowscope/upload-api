@@ -26,6 +26,7 @@ async function hashPassword(plainPassword) {
 
 async function verifyPassword(plainPassword, hashedPassword) {
   const match = await bcrypt.compare(plainPassword, hashedPassword);
+  console.log(match);
   if (match) {
       console.log("Password is correct!");
       return true;
