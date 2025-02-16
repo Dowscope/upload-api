@@ -155,6 +155,8 @@ app.get('/list_music', function(req, res) {
   })
 });
 
+app.use(bp.json());
+
 app.post('/checkUser', function(req, res) {
   const { username, password } = req.body;
 
@@ -183,7 +185,6 @@ app.post('/checkUser', function(req, res) {
   });
 });
 
-app.use(bp.json());
 
 app.post('/download', (req, res) => {
   fileName = req.body['fileName'];
