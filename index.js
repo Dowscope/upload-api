@@ -184,14 +184,14 @@ app.post('/checkUser', async function(req, res) {
 
   const query = 'SELECT password FROM USERS WHERE email = ?';
 
-  pool.query(query, [clean_email, hash_password], async (err, results) => {
+  pool.query(query, [clean_email], async (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
       return res.status(500).json({ error: 'Query Failed' });
     }
 
     if (results.length > 0) {
-      if (await verifyPassword(password, results[0].password)) {
+      if (await verifyPassword(hash_password, results[0].password)) {
         res.json({ success: true });
       }
       res.status(401).json({ error: 'Invalid credentials' });
