@@ -166,6 +166,7 @@ const sanitizeEmail = (email) => email.trim().toLowerCase();
 
 app.post('/checkUser', async function(req, res) {
   const { email, password } = req.body;
+  console.log(email, password)
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
