@@ -192,12 +192,15 @@ app.post('/checkUser', async function(req, res) {
     }
 
     if (results.length > 0) {
-      if (await verifyPassword(hash_password, results[0].password)) {
+      console.log('Results: ', results[0]);
+      const isSuccess = await verifyPassword(hash_password, results[0].password);
+      console.log('Success: ', isSuccess);
+      if (isSuccess) {
         res.json({ success: true });
       }
-      res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: 'Invalid credentials first' });
     } else {
-      res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: 'Invalid credentials second' });
     }
   });
 });
