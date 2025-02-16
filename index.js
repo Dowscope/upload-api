@@ -157,25 +157,25 @@ app.get('/list_music', function(req, res) {
 
 app.use(bp.json());
 
-app.post('/checkUser', function(req, res) {
+app.post('/checkUser', async function(req, res) {
   const { username, password } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
-  const hash_password = hashPassword(password);
+  const hash_password = await hashPassword(password);
 
   const query = 'SELECT password FROM USERS WHERE username = ? AND password = ?';
 
-  pool.query(query, [username, hash_password], (err, results) => {
+  pool.query(query, [username, hash_password], async (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
       return res.status(500).json({ error: 'Query Failed' });
     }
 
     if (results.length > 0) {
-      if (verifyPassword(password, results[0].password)) {
+      if (await verifyPassword(password, results[0].password)) {
         res.json({ success: true });
       }
       res.status(401).json({ error: 'Invalid credentials' });
