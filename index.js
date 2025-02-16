@@ -178,7 +178,7 @@ app.post('/checkUser', async function(req, res) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
-  const hash_password = await hashPassword(password);
+  //const hash_password = await hashPassword(password);
 
   const query = 'SELECT password FROM USERS WHERE email = ?';
 
@@ -190,7 +190,7 @@ app.post('/checkUser', async function(req, res) {
 
     console.log('Results: ', results);
     if (results.length > 0) {
-      const isSuccess = await verifyPassword(hash_password, results[0].password);
+      const isSuccess = await verifyPassword(password, results[0].password);
       console.log('Success: ', isSuccess);
       if (isSuccess) {
         res.json({ success: true });
