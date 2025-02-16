@@ -5,8 +5,10 @@ const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const mysql = require('mysql2');
+const bcrypt = require('bcrypt');
 
 const app = express();
+
 
 const pool = mysql.createPool({
   host: '192.168.0.235',
@@ -14,6 +16,24 @@ const pool = mysql.createPool({
   password: 'Qwerty2017',
   database: 'RTS'
 });
+
+async function hashPassword(plainPassword) {
+  const saltRounds = 10; // Number of salt rounds (higher is more secure but slower)
+  const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
+  console.log("Hashed Password:", hashedPassword);
+  return hashedPassword;
+}
+
+async function verifyPassword(plainPassword, hashedPassword) {
+  const match = await bcrypt.compare(plainPassword, hashedPassword);
+  if (match) {
+      console.log("Password is correct!");
+      return true;
+  } else {
+      console.log("Password is incorrect!");
+      return false;
+  }
+}
 
 app.use(cors({
   origin: ['http://localhost:55000', 'http://dowscopemedia.ca'],
@@ -136,16 +156,30 @@ app.get('/list_music', function(req, res) {
 });
 
 app.get('/checkUser', function(req, res) {
-  const user = "admin";
-  const pass = "hello";
-  const query = 'SELECT * FROM USERS';
+  const (username, password) = req.body;
 
-  pool.query(query, (err, results) => {
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  const hash_password = hashPassword(password);
+
+  const query = 'SELECT password FROM USERS WHERE username = ? AND password = ?';
+
+  pool.query(query, [username, hash_password], (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
-      return res.status(500).json({error: 'Query Failed'})
+      return res.status(500).json({ error: 'Query Failed' });
     }
-    res.json(results);
+
+    if (results.length > 0) {
+      if (verifyPassword(password, results[0].password)) {
+        res.json({ success: true });
+      }
+      res.status(401).json({ error: 'Invalid credentials' });
+    } else {
+      res.status(401).json({ error: 'Invalid credentials' });
+    }
   });
 });
 
