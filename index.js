@@ -194,8 +194,9 @@ app.post('/checkUser', async function(req, res) {
       console.log('Success: ', isSuccess);
       if (isSuccess) {
         res.json({ success: true });
+      } else {
+        res.status(401).json({ error: 'Invalid credentials first' });
       }
-      res.status(401).json({ error: 'Invalid credentials first' });
     } else {
       res.status(401).json({ error: 'Invalid credentials second' });
     }
