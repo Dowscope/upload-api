@@ -6,6 +6,7 @@ const path = require('path');
 const cors = require('cors');
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto')
 
 const app = express();
 
@@ -178,9 +179,7 @@ app.post('/checkUser', async function(req, res) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
-  //const hash_password = await hashPassword(password);
-
-  const query = 'SELECT password FROM USERS WHERE email = ?';
+  const query = 'SELECT password, userid FROM USERS WHERE email = ?';
 
   pool.query(query, [email], async (err, results) => {
     if (err) {
@@ -188,11 +187,29 @@ app.post('/checkUser', async function(req, res) {
       return res.status(500).json({ error: 'Query Failed' });
     }
 
-    console.log('Results: ', results);
     if (results.length > 0) {
       const isSuccess = await verifyPassword(password, results[0].password);
-      console.log('Success: ', isSuccess);
       if (isSuccess) {
+        try {
+          const sessionId = require('crypto').randomUUID();
+          const userId = results[0].userid;
+          const currentDate = new Date(); // Get the current date
+          const futureDate = new Date();
+          futureDate.setDate(currentDate.getDate() + 7);
+          
+          const insertSessionQuery = "INSERT INTO sessionstore (user_id, session, expire_date) VALUES (?, ?, ?)";
+          
+          pool.query(insertSessionQuery, [userId, sessionId, expires], (sessionErr, sessionResults) => {
+              if (sessionErr) {
+                  console.error("Session Insert Error:", sessionErr);
+                  return res.status(500).json({ error: "Failed to create session" });
+              }
+              res.json({ success: true, sessionId });
+          });
+        } catch (error) {
+            console.error("Unexpected Error:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
         res.json({ success: true });
       } else {
         res.status(401).json({ error: 'Invalid credentials first' });
