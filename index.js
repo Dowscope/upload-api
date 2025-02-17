@@ -196,7 +196,7 @@ app.post('/checkUser', async function(req, res) {
           const currentDate = new Date(); // Get the current date
           const futureDate = new Date();
           futureDate.setDate(currentDate.getDate() + 7);
-          
+
           const insertSessionQuery = "INSERT INTO sessionstore (user_id, session, expire_date) VALUES (?, ?, ?)";
           
           pool.query(insertSessionQuery, [userId, sessionId, expires], (sessionErr, sessionResults) => {
@@ -204,7 +204,7 @@ app.post('/checkUser', async function(req, res) {
                   console.error("Session Insert Error:", sessionErr);
                   return res.status(500).json({ error: "Failed to create session" });
               }
-              res.json({ success: true, sessionId });
+              res.json({ success: true, sessionId: sessionId });
           });
         } catch (error) {
             console.error("Unexpected Error:", error);
