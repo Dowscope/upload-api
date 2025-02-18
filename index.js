@@ -204,11 +204,11 @@ app.post('/checkUser', async function(req, res) {
                   console.error("Session Insert Error:", sessionErr);
                   return res.status(500).json({ error: "Failed to create session" });
               }
-              res.json({ success: true, sessionId: sessionId });
+              return res.json({ success: true, sessionId: sessionId });
           });
         } catch (error) {
             console.error("Unexpected Error:", error);
-            res.status(500).json({ error: "Internal Server Error" });
+            return res.status(500).json({ error: "Internal Server Error" });
         }
         res.json({ success: true });
       } else {
