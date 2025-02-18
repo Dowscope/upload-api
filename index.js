@@ -210,12 +210,12 @@ app.post('/checkUser', async function(req, res) {
             console.error("Unexpected Error:", error);
             return res.status(500).json({ error: "Internal Server Error" });
         }
-        res.json({ success: true });
+        return res.json({ success: true });
       } else {
-        res.status(401).json({ error: 'Invalid credentials first' });
+        return res.status(401).json({ error: 'Invalid credentials first' });
       }
     } else {
-      res.status(401).json({ error: 'Invalid credentials second' });
+      return res.status(401).json({ error: 'Invalid credentials second' });
     }
   });
 });
