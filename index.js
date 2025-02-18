@@ -166,9 +166,28 @@ app.use(bp.json());
 
 const sanitizeEmail = (email) => email.trim().toLowerCase();
 
+app.post('/sessioncheck', function (req, res) {
+  const session_id = req.body;
+  if (!session_id){
+    res.json({ valid: false })
+  }
+
+  const query = "SELECT u.email, u.first_name, u.last_name FROM sessionstore s JOIN users u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE()";
+  pool.query(query, [session_id], (err, results) => {
+    if (err) {
+      res.status(400).json({error: "Error getting session"});
+    }
+    if (results.length > 0){
+      res.json({valid: true, email: results[0].email, firstname: results[0].first_name, lastname: results[0].last_name});
+    }
+    else {
+      res.json({valid: false});
+    }
+  });
+});
+
 app.post('/checkUser', async function(req, res) {
   const { email, password } = req.body;
-  console.log(email, password)
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
@@ -179,7 +198,7 @@ app.post('/checkUser', async function(req, res) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
-  const query = 'SELECT password, userid FROM USERS WHERE email = ?';
+  const query = 'SELECT password, userid, first_name, last_name FROM USERS WHERE email = ?';
 
   pool.query(query, [email], async (err, results) => {
     if (err) {
@@ -209,7 +228,7 @@ app.post('/checkUser', async function(req, res) {
                 if (error) {
                   console.error('Error updating status:', error);
                 } else {
-                  console.log(`Row with ID ${result.id} updated`);
+                  console.log(`Row with ID ${result.session_id} updated`);
                 }
               });
             })
@@ -222,7 +241,7 @@ app.post('/checkUser', async function(req, res) {
                   console.error("Session Insert Error:", sessionErr);
                   return res.status(500).json({ error: "Failed to create session" });
               }
-              return res.json({ success: true, sessionId: sessionId });
+              return res.json({ success: true, sessionId: sessionId, firstname: results[0].first_name, lastname: results[0].last_name });
           });
         } catch (error) {
             console.error("Unexpected Error:", error);
