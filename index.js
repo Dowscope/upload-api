@@ -197,9 +197,27 @@ app.post('/checkUser', async function(req, res) {
           const futureDate = new Date();
           futureDate.setDate(currentDate.getDate() + 7);
 
-          const insertSessionQuery = "INSERT INTO sessionstore (user_id, session, expire_date) VALUES (?, ?, ?)";
+          const activeSession = "SELECT session_id, session, expire_date FROM sessionstore WHERE user_id = ? AND status = 1 AND expire_date > CURDATE()";
+          pool.query(activeSession, [userId], (activeErr, activeResults) => {
+            if (activeErr) {
+              console.error("Active Session Error:", sessionErr);
+              return res.status(500).json({ error: "Failed to get active session" });
+            }
+            activeResults.forEach(result => {
+              const ar_query = `UPDATE sessionstore SET status = 0 WHERE id = ?`;
+              pool.query(ar_query, [result.session_id], (error, results) => {
+                if (error) {
+                  console.error('Error updating status:', error);
+                } else {
+                  console.log(`Row with ID ${result.id} updated`);
+                }
+              });
+            })
+          });
+
+          const insertSessionQuery = "INSERT INTO sessionstore (user_id, session, expire_date, status) VALUES (?, ?, ?, ?)";
           
-          pool.query(insertSessionQuery, [userId, sessionId, futureDate], (sessionErr, sessionResults) => {
+          pool.query(insertSessionQuery, [userId, sessionId, futureDate, 1], (sessionErr, sessionResults) => {
               if (sessionErr) {
                   console.error("Session Insert Error:", sessionErr);
                   return res.status(500).json({ error: "Failed to create session" });
