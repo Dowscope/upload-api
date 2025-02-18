@@ -169,7 +169,7 @@ const sanitizeEmail = (email) => email.trim().toLowerCase();
 app.post('/sessioncheck', function (req, res) {
   const session_id = req.body;
   if (!session_id){
-    res.json({ valid: false })
+    return res.json({ valid: false })
   }
 
   const query = "SELECT u.email, u.first_name, u.last_name FROM sessionstore s JOIN users u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE()";
