@@ -204,7 +204,7 @@ app.post('/checkUser', async function(req, res) {
               return res.status(500).json({ error: "Failed to get active session" });
             }
             activeResults.forEach(result => {
-              const ar_query = `UPDATE sessionstore SET status = 0 WHERE id = ?`;
+              const ar_query = `UPDATE sessionstore SET status = 0 WHERE session_id = ?`;
               pool.query(ar_query, [result.session_id], (error, results) => {
                 if (error) {
                   console.error('Error updating status:', error);
