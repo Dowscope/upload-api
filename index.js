@@ -172,7 +172,7 @@ app.post('/sessioncheck', function (req, res) {
     return res.json({ valid: false })
   }
 
-  const query = "SELECT u.email, u.first_name, u.last_name FROM sessionstore s JOIN users u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE()";
+  const query = "SELECT u.email, u.first_name, u.last_name FROM sessionstore s JOIN USERS u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE()";
   pool.query(query, [session_id], (err, results) => {
     if (err) {
       console.log('Error: '.concat(err));
