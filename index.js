@@ -171,10 +171,11 @@ app.post('/sessioncheck', function (req, res) {
   if (!session_id){
     return res.json({ valid: false })
   }
-  
+
   const query = "SELECT u.email, u.first_name, u.last_name FROM sessionstore s JOIN users u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE()";
   pool.query(query, [session_id], (err, results) => {
     if (err) {
+      console.log('Error: '.concat(err));
       return res.status(400).json({error: "Error getting session"});
     }
     if (results.length > 0){
