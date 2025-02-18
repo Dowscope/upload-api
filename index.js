@@ -199,7 +199,7 @@ app.post('/checkUser', async function(req, res) {
 
           const insertSessionQuery = "INSERT INTO sessionstore (user_id, session, expire_date) VALUES (?, ?, ?)";
           
-          pool.query(insertSessionQuery, [userId, sessionId, expires], (sessionErr, sessionResults) => {
+          pool.query(insertSessionQuery, [userId, sessionId, futureDate], (sessionErr, sessionResults) => {
               if (sessionErr) {
                   console.error("Session Insert Error:", sessionErr);
                   return res.status(500).json({ error: "Failed to create session" });
