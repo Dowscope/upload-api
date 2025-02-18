@@ -191,7 +191,7 @@ app.post('/checkUser', async function(req, res) {
       const isSuccess = await verifyPassword(password, results[0].password);
       if (isSuccess) {
         try {
-          const sessionId = require('crypto').randomUUID();
+          const sessionId = crypto.randomUUID();
           const userId = results[0].userid;
           const currentDate = new Date(); // Get the current date
           const futureDate = new Date();
