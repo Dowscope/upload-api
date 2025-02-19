@@ -185,7 +185,7 @@ app.post('/rtsstatus', (req, res) => {
       try {
         const url = "http://192.168.0.113/status";
         console.log(url);
-        axios.get(url, (re, rs) => {
+        await axios.get(url, (re, rs) => {
           console.log(rs.body);
           res.json({status: rs.body});
         });
