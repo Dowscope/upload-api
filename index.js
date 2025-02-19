@@ -182,7 +182,9 @@ app.post('/rtsstatus', (req, res) => {
         console.log('User requesting rts status: '.concat(results[0].user_id));
         try {
           const url = "http://192.168.0.113/status";
+          console.log(url);
           axios.get(url, (re, rs) => {
+            console.log(rs.body);
             res.json({status: rs.body});
           });
         } catch (error) {
