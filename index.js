@@ -171,25 +171,25 @@ app.post('/rtsstatus'), (req, res) => {
   if (!session_id){
     return res.json({ valid: false })
   }
-  const query = "SELECT s.user_id FROM sessionstore s WHERE s.session = ? AND s.expire_date > CURDATE() AND s.status = 1";
-  pool.query(query, [session_id], async (err, results) => {
-    if (err) {
-      console.log('rts_ststus error: '.concat(err));
-      res.status(400).json({error: "Error getting rts status"});
-    } else {
-      if (results > 0) {
-        console.log('User requesting rts status: '.concat(results[0].user_id));
-        try {
-          const url = "http://192.168.0.113/status";
-          const response = await fetch(url);
-          const data = await response.json();
-          res.json(data);
-      } catch (error) {
-          res.status(500).json({ error: 'Failed to fetch data' });
-      }
-      }
-    }
-  });
+  // const query = "SELECT s.user_id FROM sessionstore s WHERE s.session = ? AND s.expire_date > CURDATE() AND s.status = 1";
+  // pool.query(query, [session_id], async (err, results) => {
+  //   if (err) {
+  //     console.log('rts_ststus error: '.concat(err));
+  //     res.status(400).json({error: "Error getting rts status"});
+  //   } else {
+  //     if (results > 0) {
+  //       console.log('User requesting rts status: '.concat(results[0].user_id));
+  //       try {
+  //         const url = "http://192.168.0.113/status";
+  //         const response = await fetch(url);
+  //         const data = await response.json();
+  //         res.json(data);
+  //     } catch (error) {
+  //         res.status(500).json({ error: 'Failed to fetch data' });
+  //     }
+  //     }
+  //   }
+  // });
 };
 
 app.post('/sessioncheck', function (req, res) {
