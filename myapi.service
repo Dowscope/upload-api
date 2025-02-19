@@ -1,11 +1,11 @@
 [Unit]
-Description=MyApp Service
+Description=DS API
 After=network.target
 
 [Service]
 Type=simple
 WorkingDirectory=/var/www/upload-api
-ExecStart=/root/.nvm/versions/node/v18.14.2/bin/node /var/www/upload-api/index.js
+ExecStart=/usr/bin/node /var/www/upload-api/index.js
 Restart=always
 
 [Install]

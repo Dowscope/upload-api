@@ -166,7 +166,7 @@ app.use(bp.json());
 
 const sanitizeEmail = (email) => email.trim().toLowerCase();
 
-app.post('/rts_status'), (req, res) => {
+app.post('/rtsstatus'), (req, res) => {
   const session_id = req.body;
   if (!session_id){
     return res.json({ valid: false })
