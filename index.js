@@ -6,7 +6,8 @@ const path = require('path');
 const cors = require('cors');
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
-const crypto = require('crypto')
+const crypto = require('crypto');
+const axios = require('axios');
 
 const app = express();
 
@@ -181,12 +182,12 @@ app.post('/rtsstatus', (req, res) => {
         console.log('User requesting rts status: '.concat(results[0].user_id));
         try {
           const url = "http://192.168.0.113/status";
-          const response = await fetch(url);
-          const data = await response.json();
-          res.json(data);
-      } catch (error) {
-          res.status(500).json({ error: 'Failed to fetch data' });
-      }
+          axios.get(url, (re, rs) => {
+            res.json({status: rs.body});
+          });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch data' });
+        }
       }
     }
   });
