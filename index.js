@@ -177,20 +177,20 @@ app.post('/rtsstatus', (req, res) => {
   pool.query(query, [session_id], async (err, results) => {
     if (err) {
       console.log('rts_ststus error: '.concat(err));
-      res.status(400).json({error: "Error getting rts status"});
-    } else {
-      if (results > 0) {
-        console.log('User requesting rts status: '.concat(results[0].user_id));
-        try {
-          const url = "http://192.168.0.113/status";
-          console.log(url);
-          axios.get(url, (re, rs) => {
-            console.log(rs.body);
-            res.json({status: rs.body});
-          });
-        } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch data' });
-        }
+      return res.status(400).json({error: "Error getting rts status"});
+    }
+    
+    if (results.length > 0) {
+      console.log('User requesting rts status: '.concat(results[0].user_id));
+      try {
+        const url = "http://192.168.0.113/status";
+        console.log(url);
+        axios.get(url, (re, rs) => {
+          console.log(rs.body);
+          res.json({status: rs.body});
+        });
+      } catch (error) {
+          res.status(500).json({ error: 'Failed to fetch data' });
       }
     }
   });
