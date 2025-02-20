@@ -266,14 +266,14 @@ app.post('/sessioncheck', function (req, res) {
     return res.json({ valid: false })
   }
 
-  const query = "SELECT u.email, u.first_name, u.last_name FROM sessionstore s JOIN USERS u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE()";
+  const query = "SELECT u.email, u.first_name, u.last_name, u.user_type_id FROM sessionstore s JOIN USERS u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE()";
   pool.query(query, [session_id], (err, results) => {
     if (err) {
       console.log('Error: '.concat(err));
       return res.status(400).json({error: "Error getting session"});
     }
     if (results.length > 0){
-      return res.json({valid: true, email: results[0].email, firstname: results[0].first_name, lastname: results[0].last_name});
+      return res.json({valid: true, email: results[0].email, firstname: results[0].first_name, lastname: results[0].last_name, type: results[0].user_type_id});
     }
     else {
       return res.json({valid: false});
@@ -293,7 +293,7 @@ app.post('/checkUser', async function(req, res) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
-  const query = 'SELECT password, userid, first_name, last_name FROM USERS WHERE email = ?';
+  const query = 'SELECT password, userid, first_name, last_name, user_type_id FROM USERS WHERE email = ?';
 
   pool.query(query, [email], async (err, results) => {
     if (err) {
@@ -336,7 +336,7 @@ app.post('/checkUser', async function(req, res) {
                   console.error("Session Insert Error:", sessionErr);
                   return res.status(500).json({ error: "Failed to create session" });
               }
-              return res.json({ success: true, sessionId: sessionId, firstname: results[0].first_name, lastname: results[0].last_name });
+              return res.json({ success: true, sessionId: sessionId, firstname: results[0].first_name, lastname: results[0].last_name, type: results[0].user_type_id });
           });
         } catch (error) {
             console.error("Unexpected Error:", error);
