@@ -186,7 +186,7 @@ app.post('/rtsstatus', (req, res) => {
         const url = 'http://192.168.0.113/status';
         const rs = await axios.get(url);
         console.log(rs.data);
-        res.json({status: rs.data});
+        res.json({status: rs.data.status});
       } catch (error) {
           res.status(500).json({ error: 'Failed to fetch data' });
       }
