@@ -219,6 +219,42 @@ app.post('/rtsreboot', (req, res) => {
   });
 });
 
+app.post('/adduser', (req, res) => {
+  const { session_id, firstname, lastname, email, password, type } = req.body;
+  if (!session_id){
+    return res.json({ success: false, reason: 'No User logged in' })
+  }
+  
+  if (!user || email === '' || firstname === '' || lastname === '' || password === '' || type === ''){
+    console.log(`Missing Information: ${user}`);
+    return res.json({ success: false, reason: 'Missing Information' })
+  }
+
+  const query = "SELECT s.user_id FROM sessionstore s WHERE s.session = ? AND s.expire_date > CURDATE() AND s.status = 1";
+  pool.query(query, [session_id], async (err, results) => {
+    if (err) {
+      console.log('Error getting session id: '.concat(err));
+      return res.status(400).json({success: false, reason: `Error getting session id: ${err}`});
+    }
+    
+    if (results.length > 0) {
+      console.log('User adding new user: '.concat(results[0].user_id));
+      try {
+        const qry = 'INSERT INTO USERS (email, firstname, lastname, password, user_type_id) VALUES (?, ?, ?, ?, ?)';
+        pool.query(qry, [email, firstname, lastname, password, type], (ins_err, ins_result) => {
+          if (ins_err) {
+            console.log('Error inserting user: '.concat(err));
+            return res.status(400).json({success: false, reason: `Error inserting user: ${err}`});
+          }
+          res.json({ success: true })
+        })
+      } catch (error) {
+          res.status(500).json({ error: `Failed to insert data ${error}` });
+      }
+    }
+  });
+});
+
 app.post('/sessioncheck', function (req, res) {
   const session_id = req.body;
   if (!session_id){
