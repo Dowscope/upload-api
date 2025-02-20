@@ -168,7 +168,6 @@ app.use(bp.json());
 const sanitizeEmail = (email) => email.trim().toLowerCase();
 
 app.post('/rtsstatus', (req, res) => {
-  console.log(req.body);
   const session_id = req.body;
   if (!session_id){
     return res.json({ valid: false })
@@ -184,6 +183,32 @@ app.post('/rtsstatus', (req, res) => {
       console.log('User requesting rts status: '.concat(results[0].user_id));
       try {
         const url = 'http://192.168.0.113/status';
+        const rs = await axios.get(url);
+        console.log(rs.data);
+        res.json({status: rs.data.status});
+      } catch (error) {
+          res.status(500).json({ error: 'Failed to fetch data' });
+      }
+    }
+  });
+});
+
+app.post('/rtsreboot', (req, res) => {
+  const session_id = req.body;
+  if (!session_id){
+    return res.json({ valid: false })
+  }
+  const query = "SELECT s.user_id FROM sessionstore s WHERE s.session = ? AND s.expire_date > CURDATE() AND s.status = 1";
+  pool.query(query, [session_id], async (err, results) => {
+    if (err) {
+      console.log('rts_ststus error: '.concat(err));
+      return res.status(400).json({error: "Error getting rts status"});
+    }
+    
+    if (results.length > 0) {
+      console.log('User requesting rts reboot: '.concat(results[0].user_id));
+      try {
+        const url = 'http://192.168.0.113/reboot';
         const rs = await axios.get(url);
         console.log(rs.data);
         res.json({status: rs.data.status});
