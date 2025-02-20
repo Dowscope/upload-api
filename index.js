@@ -209,7 +209,7 @@ app.post('/rtsreboot', (req, res) => {
       console.log('User requesting rts reboot: '.concat(results[0].user_id));
       try {
         const url = 'http://192.168.0.113/reboot';
-        const rs = await axios.get(url);
+        const rs = await axios.post(url);
         console.log(rs);
         res.json({status: rs.data.status});
       } catch (error) {
