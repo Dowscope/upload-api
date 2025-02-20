@@ -221,7 +221,7 @@ app.post('/rtsreboot', (req, res) => {
 
 app.post('/adduser', (req, res) => {
   const { session_id, firstname, lastname, email, password, type } = req.body;
-  console.log(req.body);
+
   if (!session_id){
     return res.json({ success: false, reason: 'No User logged in' })
   }
@@ -242,6 +242,7 @@ app.post('/adduser', (req, res) => {
       return res.status(400).json({success: false, reason: `Error getting session id: ${err}`});
     }
     
+    console.log(results);
     if (results.length > 0) {
       console.log('User adding new user: '.concat(results[0].user_id));
       const hash_passwd = hashPassword(password);
