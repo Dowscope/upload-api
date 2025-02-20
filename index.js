@@ -183,12 +183,10 @@ app.post('/rtsstatus', (req, res) => {
     if (results.length > 0) {
       console.log('User requesting rts status: '.concat(results[0].user_id));
       try {
-        const url = "http://192.168.0.113/status";
-        console.log(url);
-        await axios.get(url, (re, rs) => {
-          console.log(rs.body);
-          res.json({status: rs.body});
-        });
+        const url = 'http://192.168.0.113/status';
+        const rs = await axios.get(url);
+        console.log(rs.body);
+        res.json({status: rs.body});
       } catch (error) {
           res.status(500).json({ error: 'Failed to fetch data' });
       }
