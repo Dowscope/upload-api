@@ -417,7 +417,11 @@ app.post('/validate', async function(req, res) {
           console.log(val_result);
           if (val_result.length > 0) {
             const isSuccess = await verifyPassword(password, val_result[0].password);
-            res.json({ success: isSuccess });
+            if (isSuccess) {
+              res.json({ success: isSuccess });
+            } else {
+              res.json({ success: isSuccess, reason: 'Password not valid' });
+            }
           } else {
             res.json({ success: false, reason: 'User or Password not found' });
           }
