@@ -251,7 +251,7 @@ app.post('/adduser', (req, res) => {
       console.log('User adding new user: '.concat(results[0].user_id));
       const hash_passwd = hashPassword(password);
       try {
-        const qry = 'INSERT INTO USERS (email, firstname, lastname, last_modified_date, password, user_type_id) VALUES (?, ?, ?, CURRENT_TIMESTAMP ?, ?)';
+        const qry = 'INSERT INTO USERS (email, first_name, last_name, last_modified_date, password, user_type_id) VALUES (?, ?, ?, CURRENT_TIMESTAMP ?, ?)';
         pool.query(qry, [email, firstname, lastname, hash_passwd, type], (ins_err, ins_result) => {
           if (ins_err) {
             console.log('Error inserting user: '.concat(err));
