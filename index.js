@@ -24,7 +24,7 @@ const pool = mysql.createPool({
 async function hashPassword(plainPassword) {
   const saltRounds = 10; // Number of salt rounds (higher is more secure but slower)
   const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
-  // console.log("Hashed Password:", hashedPassword);
+  console.log("Hashed Password:", hashedPassword);
   return hashedPassword;
 }
 
