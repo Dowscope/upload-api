@@ -388,6 +388,7 @@ app.post('/validate', async function(req, res) {
             console.log('Error inserting user: '.concat(val_err.message));
             return res.status(400).json({success: false, reason: `Error inserting user: ${val_err.message}`});
           }
+          console.log(val_result);
           if (val_result.length > 0) {
             const isSuccess = await verifyPassword(password, val_result[0].password);
             res.json({ success: isSuccess });
