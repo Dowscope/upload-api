@@ -173,11 +173,14 @@ const sanitizeEmail = (email) => email.trim().toLowerCase();
 // RTS SERVER - Status
 // *********************************
 app.post('/rtsstatus', (req, res) => {
-  const session_id = req.body;
+  const {session_id, email} = req.body;
   if (!session_id){
     return res.json({ valid: false })
   }
-  pool.query(qryValidateSession, [session_id], async (err, results) => {
+  if (!email) {
+    return res.status(400).json({ error: 'Logged in user email required' });
+  }
+  pool.query(qryValidateSession, [session_id, email], async (err, results) => {
     if (err) {
       console.log('rts_ststus error: '.concat(err));
       return res.status(400).json({error: "Error getting rts status"});
@@ -201,11 +204,14 @@ app.post('/rtsstatus', (req, res) => {
 // RTS SERVER - Reboot
 // *********************************
 app.post('/rtsreboot', (req, res) => {
-  const session_id = req.body;
+  const {session_id, email} = req.body;
   if (!session_id){
     return res.json({ valid: false })
   }
-  pool.query(qryValidateSession, [session_id], async (err, results) => {
+  if (!email) {
+    return res.status(400).json({ error: 'Logged in user email required' });
+  }
+  pool.query(qryValidateSession, [session_id, email], async (err, results) => {
     if (err) {
       console.log('rts_ststus error: '.concat(err));
       return res.status(400).json({error: "Error getting rts status"});
@@ -229,13 +235,17 @@ app.post('/rtsreboot', (req, res) => {
 // Add User
 // *********************************
 app.post('/adduser', (req, res) => {
-  const { session_id, user } = req.body;
+  const { session_id, useremail, user } = req.body;
   const { email, firstname, lastname, password, type } = user;
 
   console.log(`${session_id} | Adding New User: ${email}` );
 
   if (!session_id){
     return res.json({ success: false, reason: 'No User logged in' })
+  }
+
+  if (!useremail) {
+    return res.status(400).json({ error: 'Logged in user email required' });
   }
 
   if (!user || email === '' || firstname === '' || lastname === '' || password === '' || type === ''){
@@ -247,7 +257,7 @@ app.post('/adduser', (req, res) => {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
-  pool.query(qryValidateSession, [session_id], async (err, results) => {
+  pool.query(qryValidateSession, [session_id, useremail], async (err, results) => {
     if (err) {
       console.log('Error getting session id: '.concat(err));
       return res.status(400).json({success: false, reason: `Error getting session id: ${err}`});
@@ -390,7 +400,7 @@ app.post('/validate', async function(req, res) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
-  pool.query(qryValidateSession, [session_id], async (err, results) => {
+  pool.query(qryValidateSession, [session_id, email], async (err, results) => {
     if (err) {
       console.log('Error getting session id: '.concat(err));
       return res.status(400).json({success: false, reason: `Error getting session id: ${err}`});
