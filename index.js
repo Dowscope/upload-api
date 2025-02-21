@@ -358,6 +358,7 @@ app.post('/checkUser', async function(req, res) {
 
 app.post('/validate', async function(req, res) {
   const { email, password } = req.body;
+  console.log("Validating User: ", email);
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
