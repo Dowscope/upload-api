@@ -468,7 +468,7 @@ app.post('/updateuser', async function(req, res) {
           if (val_result.length > 0) {
             console.log(`${session_id} | Updating User: ${email}`);
             const newPass = await hashPassword(password);
-            const updateQry = 'UPDATE USERS SET password = ? WHERE userid = ?';
+            const updateQry = 'UPDATE USERS SET password = ?, last_modified_date = CURRENT_TIMESTAMP WHERE userid = ?';
             pool.query(updateQry, [newPass, results[0].user_id], (upd_err, upd_result) => {
               if (upd_err) {
                 console.log('Error updating password: '.concat(upd_err));
