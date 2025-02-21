@@ -22,7 +22,7 @@ const pool = mysql.createPool({
 async function hashPassword(plainPassword) {
   const saltRounds = 10; // Number of salt rounds (higher is more secure but slower)
   const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
-  console.log("Hashed Password:", hashedPassword);
+  // console.log("Hashed Password:", hashedPassword);
   return hashedPassword;
 }
 
@@ -239,7 +239,6 @@ app.post('/adduser', (req, res) => {
   }
 
   const query = "SELECT s.user_id FROM sessionstore s WHERE s.session = ? AND s.expire_date > CURDATE() AND s.status = 1";
-  console.log(query);
   pool.query(query, [session_id], async (err, results) => {
     if (err) {
       console.log('Error getting session id: '.concat(err));
@@ -251,7 +250,6 @@ app.post('/adduser', (req, res) => {
       console.log('User adding new user: '.concat(results[0].user_id));
       const hash_passwd = await hashPassword(password);
       try {
-        console.log('Query Values:', email, firstname, lastname, hash_passwd, type);
         const qry = 'INSERT INTO USERS (email, first_name, last_name, last_modified_date, password, user_type_id) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?, ?)';
         pool.query(qry, [email, firstname, lastname, hash_passwd, type], (ins_err, ins_result) => {
           if (ins_err) {
