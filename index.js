@@ -474,8 +474,13 @@ app.post('/updateuser', async function(req, res) {
                 console.log('Error updating password: '.concat(upd_err));
                 return res.status(400).json({success: false, reason: `Error updating password: ${upd_err}`});
               }
-              console.log('Password Updated: ', upd_result);
-              res.json({ success: true });
+              const changedRows = upd_result.ResultSetHeader.changedRows;
+              console.log('Password Updated | ChangedRows: ', changedRows);
+              if (changedRows > 0) {
+                res.json({ success: true });
+              } else {
+                res.json({ success: false, reason: 'Password not updated' });
+              }
             });
           }
         })
