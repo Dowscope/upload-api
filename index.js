@@ -466,21 +466,17 @@ app.post('/updateuser', async function(req, res) {
           }
           console.log(val_result);
           if (val_result.length > 0) {
-            const isSuccess = await verifyPassword(password, val_result[0].password);
-            if (isSuccess) {
-              const newPass = await hashPassword(password);
-              const updateQry = 'UPDATE USERS SET password = ? WHERE userid = ?';
-              pool.query(updateQry, [newPass, results[0].user_id], (upd_err, upd_result) => {
-                if (upd_err) {
-                  console.log('Error updating password: '.concat(upd_err));
-                  return res.status(400).json({success: false, reason: `Error updating password: ${upd_err}`});
-                }
-                console.log('Password Updated: ', upd_result);
-                res.json({ success: true });
-              });
-            } else {
-            res.json({ success: false, reason: 'User or Password not found' });
-            }
+            console.log(`${session_id} | Updating User: ${email}`);
+            const newPass = await hashPassword(password);
+            const updateQry = 'UPDATE USERS SET password = ? WHERE userid = ?';
+            pool.query(updateQry, [newPass, results[0].user_id], (upd_err, upd_result) => {
+              if (upd_err) {
+                console.log('Error updating password: '.concat(upd_err));
+                return res.status(400).json({success: false, reason: `Error updating password: ${upd_err}`});
+              }
+              console.log('Password Updated: ', upd_result);
+              res.json({ success: true });
+            });
           }
         })
       } catch (error) {
