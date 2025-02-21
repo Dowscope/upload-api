@@ -254,8 +254,8 @@ app.post('/adduser', (req, res) => {
         const qry = 'INSERT INTO USERS (email, first_name, last_name, last_modified_date, password, user_type_id) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?, ?)';
         pool.query(qry, [email, firstname, lastname, hash_passwd, type], (ins_err, ins_result) => {
           if (ins_err) {
-            console.log('Error inserting user: '.concat(err));
-            return res.status(400).json({success: false, reason: `Error inserting user: ${ins_err}`});
+            console.log('Error inserting user: '.concat(ins_err.message));
+            return res.status(400).json({success: false, reason: `Error inserting user: ${ins_err.message}`});
           }
           res.json({ success: true })
         })
