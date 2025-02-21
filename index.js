@@ -439,6 +439,7 @@ app.post('/updateuser', async function(req, res) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
+  console.log(session_id, email, password);
   pool.query(qryValidateSession, [session_id, email], async (err, results) => {
     if (err) {
       console.log('Error getting session id: '.concat(err));
