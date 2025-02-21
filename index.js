@@ -221,13 +221,15 @@ app.post('/rtsreboot', (req, res) => {
 
 app.post('/adduser', (req, res) => {
   const { session_id, user } = req.body;
-  console.log(`${session_id} | Adding New User: ${user['email']}` );
+  const { email, firstname, lastname, password, type } = user;
+
+  console.log(`${session_id} | Adding New User: ${email}` );
 
   if (!session_id){
     return res.json({ success: false, reason: 'No User logged in' })
   }
-  
-  if (!user || user['email'] === '' || user['firstname'] === '' || user['lastname'] === '' || user['password'] === '' || user['type'] === ''){
+
+  if (!user || email === '' || firstname === '' || lastname === '' || password === '' || type === ''){
     console.log(`Missing Information: ${user}`);
     return res.json({ success: false, reason: 'Missing Information' })
   }
