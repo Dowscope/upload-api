@@ -356,6 +356,34 @@ app.post('/checkUser', async function(req, res) {
   });
 });
 
+app.post('/validate', async function(req, res) {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  // Validate email format
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
+  const query = 'SELECT password FROM USERS WHERE email = ?';
+
+  pool.query(query, [email], async (err, results) => {
+    if (err) {
+      console.error("Query Error: ", err);
+      return res.status(500).json({ error: 'Query Failed' });
+    }
+
+    if (results.length > 0) {
+      const isSuccess = await verifyPassword(password, results[0].password);
+      res.json({ success: isSuccess });
+    } else {
+      res.json({ success: false });
+    }
+  });
+});
 
 app.post('/download', (req, res) => {
   fileName = req.body['fileName'];
