@@ -357,8 +357,12 @@ app.post('/checkUser', async function(req, res) {
 });
 
 app.post('/validate', async function(req, res) {
-  const { email, password } = req.body;
-  console.log("Validating User: ", email);
+  const { session_id, email, password } = req.body;
+  console.log(`${session_id} | Validating User: ${email}`);
+
+  if (!session_id){
+    return res.json({ success: false, reason: 'No User logged in' })
+  }
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
@@ -369,19 +373,31 @@ app.post('/validate', async function(req, res) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
-  const query = 'SELECT password FROM USERS WHERE email = ?';
-
-  pool.query(query, [email], async (err, results) => {
+  const query = "SELECT s.user_id FROM sessionstore s WHERE s.session = ? AND s.expire_date > CURDATE() AND s.status = 1";
+  pool.query(query, [session_id], async (err, results) => {
     if (err) {
-      console.error("Query Error: ", err);
-      return res.status(500).json({ error: 'Query Failed' });
+      console.log('Error getting session id: '.concat(err));
+      return res.status(400).json({success: false, reason: `Error getting session id: ${err}`});
     }
-
+    
     if (results.length > 0) {
-      const isSuccess = await verifyPassword(password, results[0].password);
-      res.json({ success: isSuccess });
-    } else {
-      res.json({ success: false });
+      try {
+        const qry = 'SELECT password FROM USERS WHERE user_id = ?';
+        pool.query(qry, [results[0].user_id], (val_err, val_result) => {
+          if (val_err) {
+            console.log('Error inserting user: '.concat(val_err.message));
+            return res.status(400).json({success: false, reason: `Error inserting user: ${val_err.message}`});
+          }
+          if (val_result.length > 0) {
+            const isSuccess = verifyPassword(password, val_result[0].password);
+            res.json({ success: isSuccess });
+          } else {
+            res.json({ success: false });
+          }
+        })
+      } catch (error) {
+          res.status(500).json({ error: `Failed to validate ${error}` });
+      }
     }
   });
 });
