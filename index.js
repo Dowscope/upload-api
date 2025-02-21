@@ -383,13 +383,13 @@ app.post('/validate', async function(req, res) {
     if (results.length > 0) {
       try {
         const qry = 'SELECT password FROM USERS WHERE userid = ?';
-        pool.query(qry, [results[0].user_id], (val_err, val_result) => {
+        pool.query(qry, [results[0].user_id], async (val_err, val_result) => {
           if (val_err) {
             console.log('Error inserting user: '.concat(val_err.message));
             return res.status(400).json({success: false, reason: `Error inserting user: ${val_err.message}`});
           }
           if (val_result.length > 0) {
-            const isSuccess = verifyPassword(password, val_result[0].password);
+            const isSuccess = await verifyPassword(password, val_result[0].password);
             res.json({ success: isSuccess });
           } else {
             res.json({ success: false });
