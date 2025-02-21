@@ -221,7 +221,7 @@ app.post('/rtsreboot', (req, res) => {
 
 app.post('/adduser', (req, res) => {
   const { session_id, user } = req.body;
-  console.log(`Adding New User: ${user}` );
+  console.log(`Adding New User: ${user.email}` );
 
   if (!session_id){
     return res.json({ success: false, reason: 'No User logged in' })
