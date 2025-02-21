@@ -382,7 +382,7 @@ app.post('/validate', async function(req, res) {
     
     if (results.length > 0) {
       try {
-        const qry = 'SELECT password FROM USERS WHERE user_id = ?';
+        const qry = 'SELECT password FROM USERS WHERE userid = ?';
         pool.query(qry, [results[0].user_id], (val_err, val_result) => {
           if (val_err) {
             console.log('Error inserting user: '.concat(val_err.message));
