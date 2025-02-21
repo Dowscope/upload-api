@@ -420,7 +420,7 @@ app.post('/validate', async function(req, res) {
             if (isSuccess) {
               res.json({ success: isSuccess });
             } else {
-              res.json({ success: isSuccess, reason: 'Password not valid' });
+              res.json({ success: isSuccess, reason: 'Old Password Incorrect' });
             }
           } else {
             res.json({ success: false, reason: 'User or Password not found' });
