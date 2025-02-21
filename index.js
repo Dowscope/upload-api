@@ -255,7 +255,7 @@ app.post('/adduser', (req, res) => {
         pool.query(qry, [email, firstname, lastname, hash_passwd, type], (ins_err, ins_result) => {
           if (ins_err) {
             console.log('Error inserting user: '.concat(err));
-            return res.status(400).json({success: false, reason: `Error inserting user: ${err}`});
+            return res.status(400).json({success: false, reason: `Error inserting user: ${ins_err}`});
           }
           res.json({ success: true })
         })
