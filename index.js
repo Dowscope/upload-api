@@ -316,7 +316,7 @@ app.post('/checkUser', async function(req, res) {
   if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
-
+  console.log(await hashPassword(password));
   // Validate email format
   if (!isValidEmail(email)) {
     return res.status(400).json({ error: 'Invalid email format' });
