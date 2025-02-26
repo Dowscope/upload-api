@@ -74,17 +74,18 @@ const storage = multer.diskStorage({
 
 const upload = multer({storage: storage});
 
-app.post('/uploads', upload.single('file'), (req, res) => {
+function createEntry(filename) {
   const timestamp = new Date(Date.now());
   const estOptions = { timeZone: 'America/New_York' };
   const estTimeString = timestamp.toLocaleString('en-US', estOptions);
-  console.log(estTimeString + ': ' + req.file.filename + ' File Being Uploaded');
+  console.log(estTimeString + ': ' + filename + ' File Being Uploaded');
   const fileEntry = {
-    fileName: req.file.filename,
+    fileName: filename,
     uploaded: estTimeString,
     timestamp: timestamp,
     downloaded: false,
   }
+
   fs.readFile(__dirname + '/fileList.json', (readErr, data) => {
     if (readErr) {
       console.log('JSON File not found... creating now');
@@ -94,11 +95,13 @@ app.post('/uploads', upload.single('file'), (req, res) => {
       const jsonStr = JSON.stringify(obj);
       fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
-          console.log('Error creating JSON File');
-          res.send(wriErr);
-          return;
+          var msg = 'Error creating JSON File';
+          console.log(msg);
+          return { success: false, reason: msg };
         } else {
-          console.log('JSON File created successfully');
+          var msg = 'JSON File created';
+          console.log(msg);
+          return { success: true, reason: msg };
         }
       });
     } else {
@@ -107,17 +110,22 @@ app.post('/uploads', upload.single('file'), (req, res) => {
       const jsonStr = JSON.stringify(list);
       fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
-          console.log('Error writing to JSON File');
-          res.send(wriErr);
-          return;
+          var msg = 'Error writing to JSON File';
+          console.log(msg);
+          return { success: false, reason: msg };
         } else {
-          console.log('File added successfully');
+          var msg = 'File added successfully';
+          console.log(msg);
+          return { success: true, reason: msg };
         }
       });
     }
-    console.log('Upload Complete');
   });
-  res.json({ file: req.file});
+}
+
+app.post('/uploads', upload.single('file'), (req, res) => {
+  const result = createEntry(req.file.originalname);
+  res.json({ success: result.success, reason: result.reason, file: req.file});
 });
 
 app.get('/list', function(req, res) {
@@ -227,6 +235,53 @@ app.post('/rtsreboot', (req, res) => {
       } catch (error) {
           res.status(500).json({ error: `Failed to fetch data ${error}` });
       }
+    }
+  });
+});
+
+// *********************************
+// RTS SERVER - Upload RuleSet
+// *********************************
+app.post('/rts_upload_ruleset', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+  const {session_id, email} = req.body;
+  if (!session_id){
+    return res.json({ valid: false })
+  }
+  if (!email) {
+    return res.status(400).json({ error: 'Logged in user email required' });
+  }
+  pool.query(qryValidateSession, [session_id, email], async (err, results) => {
+    if (err) {
+      console.log('rts_ststus error: '.concat(err));
+      return res.status(400).json({error: "Error getting rts status"});
+    }
+
+    if (results.length > 0) {
+      console.log('User requesting rts upload ruleset: '.concat(results[0].user_id));
+
+      const formdata = new FormData();
+      formdata.append('file', fs.createReadStream(__dirname + '/uploads/' + req.file.originalname), req.file.originalname);
+      
+      var resdata = '';
+      try {
+        const url = 'http://192.168.0.113/upload_ruleset';
+        const rs = await axios.post(url, formdata, {
+          headers: {
+            ...formdata.getHeaders()
+          }
+        });
+        resdata = rs.data;
+      } catch (error) {
+        resdata = error;
+        res.status(500).json({ error: `Failed to fetch data ${error}` });
+      }
+
+      const result = createEntry(req.file.originalname);
+
+      res.json({ success: result.success, reason: result.reason, file: req.file, resdata: resdata });
     }
   });
 });
