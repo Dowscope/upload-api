@@ -284,7 +284,8 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
       }
   
       const result = createEntry(req.file.originalname);
-  
+      
+      console.log('Upload Result: ', result);
       res.json({ success: result.success, reason: result.reason, file: req.file, resdata: resdata });
     }
   });
