@@ -247,6 +247,8 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
       return res.status(400).send('No file uploaded.');
   }
   const {session_id, email} = req.body;
+  console.log(req.body);
+  
   if (!session_id){
     return res.json({ valid: false, reason: 'No User logged in' })
   }
