@@ -72,7 +72,7 @@ const storage = multer.diskStorage({
   fileFilter
 });
 
-const upload = multer({storage: storage});
+const upload = multer({storage: storage}).single('file');
 
 function createEntry(filename) {
   const timestamp = new Date(Date.now());
