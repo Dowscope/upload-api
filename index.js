@@ -86,15 +86,15 @@ async function createEntry(filename) {
     timestamp: timestamp,
     downloaded: false,
   }
-
-  await fs.readFile(__dirname + '/fileList.json', async (readErr, data) => {
+  
+  fs.readFileSync(__dirname + '/fileList.json', (readErr, data) => {
     if (readErr) {
       console.log('JSON File not found... creating now');
       const obj = [
         fileEntry,
       ]
       const jsonStr = JSON.stringify(obj);
-      await fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
+      fs.writeFileSync(__dirname + '/fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
           var msg = 'Error creating JSON File';
           console.log(msg);
@@ -109,7 +109,7 @@ async function createEntry(filename) {
       var list = JSON.parse(data);
       list.push(fileEntry);
       const jsonStr = JSON.stringify(list);
-      await fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
+      fs.writeFileSync(__dirname + '/fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
           var msg = 'Error writing to JSON File';
           console.log(msg);
