@@ -87,9 +87,19 @@ async function createEntry(filename) {
     downloaded: false,
   }
   
-  var filelist = fs.readFileSync(__dirname + '/fileList.json');
-
-  if (filelist === null) {
+  try {
+    var filelist = fs.readFileSync(__dirname + '/fileList.json');
+    
+    var list = JSON.parse(data);
+    list.push(fileEntry);
+    const jsonStr = JSON.stringify(list);
+  
+    fs.writeFileSync(__dirname + '/fileList.json', jsonStr);
+    
+    var msg = 'File added successfully';
+    console.log(msg);
+    return { success: true, reason: msg };
+  } catch (error) {
     console.log('JSON File not found... creating now');
     const obj = [
       fileEntry,
@@ -100,16 +110,7 @@ async function createEntry(filename) {
     console.log(msg);
     return { success: true, reason: msg };
   }
-
-  var list = JSON.parse(data);
-  list.push(fileEntry);
-  const jsonStr = JSON.stringify(list);
-
-  fs.writeFileSync(__dirname + '/fileList.json', jsonStr);
   
-  var msg = 'File added successfully';
-  console.log(msg);
-  return { success: true, reason: msg };
 }
 
 app.post('/uploads', upload, (req, res) => {
