@@ -253,6 +253,7 @@ app.post('/rts_upload_ruleset', upload.single('file'), async (req, res) => {
   if (!email) {
     return res.status(400).json({ error: 'Logged in user email required' });
   }
+  console.log('User requesting rts upload ruleset: '.concat(email));
   pool.query(qryValidateSession, [session_id, email], async (err, results) => {
     if (err) {
       console.log('rts_ststus error: '.concat(err));
