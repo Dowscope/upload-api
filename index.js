@@ -8,6 +8,7 @@ const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const axios = require('axios');
+const FormData = require('form-data');
 
 const app = express();
 
@@ -248,14 +249,14 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
   }
   const {session_id, email} = req.body;
   console.log(req.body);
-  
+
   if (!session_id){
     return res.json({ valid: false, reason: 'No User logged in' })
   }
   if (!email) {
     return res.status(400).json({ error: 'Logged in user email required' });
   }
-  console.log('User requesting rts upload ruleset: '.concat(email));
+
   pool.query(qryValidateSession, [session_id, email], async (err, results) => {
     if (err) {
       console.log('rts_ststus error: '.concat(err));
