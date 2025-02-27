@@ -242,8 +242,10 @@ app.post('/rtsreboot', (req, res) => {
 // *********************************
 // RTS SERVER - Upload RuleSet
 // *********************************
-app.get('/rtsuploadruleset', async (req, res) => {
+app.post('/rtsuploadruleset', (req, res) => {
   console.log(req);
+  res.send('OK');
+});
   // if (!req.file) {
   //   return res.status(400).send('No file uploaded.');
   // }
@@ -286,7 +288,6 @@ app.get('/rtsuploadruleset', async (req, res) => {
   //     res.json({ success: result.success, reason: result.reason, file: req.file, resdata: resdata });
   //   }
   // });
-});
 
 // *********************************
 // Add User
