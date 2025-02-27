@@ -242,62 +242,52 @@ app.post('/rtsreboot', (req, res) => {
 // *********************************
 // RTS SERVER - Upload RuleSet
 // *********************************
-app.post('/rtsuploadruleset', (req, res) => {
-  upload(req, res, (err) => {
-    console.log(err);
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: `Multer error: ${err.message}` });
-    } else if (err) {
-      return res.status(400).json({ error: `Error: ${err.message}` });
-    }
-    return res.status(200).json({ message: 'File uploaded successfully' });
-  });
+app.post('/rtsuploadruleset', upload, (req, res) => {
   console.log(req);
-  res.send('OK');
+  if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+  }
+  const {session_id, email} = req.body;
+  if (!session_id){
+    return res.json({ valid: false })
+  }
+  if (!email) {
+    return res.status(400).json({ error: 'Logged in user email required' });
+  }
+  console.log('User requesting rts upload ruleset: '.concat(email));
+  pool.query(qryValidateSession, [session_id, email], async (err, results) => {
+    if (err) {
+      console.log('rts_ststus error: '.concat(err));
+      return res.status(400).json({error: "Error uploading ruleset"});
+    }
+    console.log(results);
+    if (results.length > 0) {
+      console.log('User requesting rts upload ruleset: '.concat(results[0].user_id));
+  
+      const formdata = new FormData();
+      formdata.append('file', fs.createReadStream(__dirname + '/uploads/' + req.file.originalname), req.file.originalname);
+  
+      var resdata = '';
+      try {
+        const url = 'http://192.168.0.113/upload_ruleset';
+        const rs = await axios.post(url, formdata, {
+            headers: {
+                ...formdata.getHeaders()
+              }
+        });
+        resdata = rs.data;
+      } catch (error) {
+        resdata = error;
+        res.status(500).json({ error: `Failed to fetch data ${error}` });
+      }
+  
+      const result = createEntry(req.file.originalname);
+  
+      res.json({ success: result.success, reason: result.reason, file: req.file, resdata: resdata });
+    }
+  });
 });
-  // if (!req.file) {
-  //   return res.status(400).send('No file uploaded.');
-  // }
-  // const {session_id, email} = req.body;
-  // if (!session_id){
-  //   return res.json({ valid: false })
-  // }
-  // if (!email) {
-  //   return res.status(400).json({ error: 'Logged in user email required' });
-  // }
-  // console.log('User requesting rts upload ruleset: '.concat(email));
-  // pool.query(qryValidateSession, [session_id, email], async (err, results) => {
-  //   if (err) {
-  //     console.log('rts_ststus error: '.concat(err));
-  //     return res.status(400).json({error: "Error uploading ruleset"});
-  //   }
-  //   console.log(results);
-  //   if (results.length > 0) {
-  //     console.log('User requesting rts upload ruleset: '.concat(results[0].user_id));
-
-  //     const formdata = new FormData();
-  //     formdata.append('file', fs.createReadStream(__dirname + '/uploads/' + req.file.originalname), req.file.originalname);
-      
-  //     var resdata = '';
-  //     try {
-  //       const url = 'http://192.168.0.113/upload_ruleset';
-  //       const rs = await axios.post(url, formdata, {
-  //         headers: {
-  //           ...formdata.getHeaders()
-  //         }
-  //       });
-  //       resdata = rs.data;
-  //     } catch (error) {
-  //       resdata = error;
-  //       res.status(500).json({ error: `Failed to fetch data ${error}` });
-  //     }
-
-  //     const result = createEntry(req.file.originalname);
-
-  //     res.json({ success: result.success, reason: result.reason, file: req.file, resdata: resdata });
-  //   }
-  // });
-
+          
 // *********************************
 // Add User
 // *********************************
