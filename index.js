@@ -48,7 +48,7 @@ function isValidEmail(email) {
 app.use(cors({
   origin: ['http://localhost:55000', 'http://dowscopemedia.ca', 'http://localhost:8080'],
   methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin']
 }));
 
 const fileFilter = function(req, file, cb){
