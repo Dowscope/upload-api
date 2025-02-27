@@ -242,7 +242,16 @@ app.post('/rtsreboot', (req, res) => {
 // *********************************
 // RTS SERVER - Upload RuleSet
 // *********************************
-app.post('/rtsuploadruleset', upload, (req, res) => {
+app.post('/rtsuploadruleset', (req, res) => {
+  upload(req, res, (err) => {
+    console.log(err);
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: `Multer error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ error: `Error: ${err.message}` });
+    }
+    res.status(200).json({ message: 'File uploaded successfully' });
+  });
   console.log(req);
   res.send('OK');
 });
