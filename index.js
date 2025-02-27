@@ -243,13 +243,12 @@ app.post('/rtsreboot', (req, res) => {
 // RTS SERVER - Upload RuleSet
 // *********************************
 app.post('/rtsuploadruleset', upload, (req, res) => {
-  console.log(req);
   if (!req.file) {
       return res.status(400).send('No file uploaded.');
   }
   const {session_id, email} = req.body;
   if (!session_id){
-    return res.json({ valid: false })
+    return res.json({ valid: false, reason: 'No User logged in' })
   }
   if (!email) {
     return res.status(400).json({ error: 'Logged in user email required' });
