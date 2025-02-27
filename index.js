@@ -123,7 +123,7 @@ function createEntry(filename) {
   });
 }
 
-app.post('/uploads', upload.single('file'), (req, res) => {
+app.post('/uploads', upload, (req, res) => {
   const result = createEntry(req.file.originalname);
   res.json({ success: result.success, reason: result.reason, file: req.file});
 });
@@ -242,7 +242,7 @@ app.post('/rtsreboot', (req, res) => {
 // *********************************
 // RTS SERVER - Upload RuleSet
 // *********************************
-app.post('/rtsuploadruleset', upload.single('file'), (req, res) => {
+app.post('/rtsuploadruleset', upload, (req, res) => {
   console.log(req);
   res.send('OK');
 });
