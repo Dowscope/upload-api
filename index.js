@@ -242,7 +242,7 @@ app.post('/rtsreboot', (req, res) => {
 // *********************************
 // RTS SERVER - Upload RuleSet
 // *********************************
-app.post('/rtsuploadruleset', (req, res) => {
+app.post('/rtsuploadruleset', upload.single('file'), (req, res) => {
   console.log(req);
   res.send('OK');
 });
