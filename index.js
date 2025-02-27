@@ -242,7 +242,7 @@ app.post('/rtsreboot', (req, res) => {
 // *********************************
 // RTS SERVER - Upload RuleSet
 // *********************************
-app.post('/rtsuploadruleset', async (req, res) => {
+app.get('/rtsuploadruleset', async (req, res) => {
   console.log(req);
   // if (!req.file) {
   //   return res.status(400).send('No file uploaded.');
