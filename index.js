@@ -242,7 +242,7 @@ app.post('/rtsreboot', (req, res) => {
 // *********************************
 // RTS SERVER - Upload RuleSet
 // *********************************
-app.post('/rts_upload_ruleset', upload.single('file'), (req, res) => {
+app.post('/rts_upload_ruleset', upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
   }
@@ -256,9 +256,9 @@ app.post('/rts_upload_ruleset', upload.single('file'), (req, res) => {
   pool.query(qryValidateSession, [session_id, email], async (err, results) => {
     if (err) {
       console.log('rts_ststus error: '.concat(err));
-      return res.status(400).json({error: "Error getting rts status"});
+      return res.status(400).json({error: "Error uploading ruleset"});
     }
-
+    console.log(results);
     if (results.length > 0) {
       console.log('User requesting rts upload ruleset: '.concat(results[0].user_id));
 
