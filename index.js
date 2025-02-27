@@ -75,7 +75,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({storage: storage}).single('file');
 
-function createEntry(filename) {
+async function createEntry(filename) {
   const timestamp = new Date(Date.now());
   const estOptions = { timeZone: 'America/New_York' };
   const estTimeString = timestamp.toLocaleString('en-US', estOptions);
@@ -87,14 +87,14 @@ function createEntry(filename) {
     downloaded: false,
   }
 
-  fs.readFile(__dirname + '/fileList.json', (readErr, data) => {
+  await fs.readFile(__dirname + '/fileList.json', async (readErr, data) => {
     if (readErr) {
       console.log('JSON File not found... creating now');
       const obj = [
         fileEntry,
       ]
       const jsonStr = JSON.stringify(obj);
-      fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
+      await fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
           var msg = 'Error creating JSON File';
           console.log(msg);
@@ -109,7 +109,7 @@ function createEntry(filename) {
       var list = JSON.parse(data);
       list.push(fileEntry);
       const jsonStr = JSON.stringify(list);
-      fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
+      await fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
         if (wriErr) {
           var msg = 'Error writing to JSON File';
           console.log(msg);
