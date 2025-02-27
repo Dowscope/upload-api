@@ -87,44 +87,29 @@ async function createEntry(filename) {
     downloaded: false,
   }
   
-  fs.readFileSync(__dirname + '/fileList.json', (readErr, data) => {
-    if (readErr) {
-      console.log('JSON File not found... creating now');
-      const obj = [
-        fileEntry,
-      ]
-      const jsonStr = JSON.stringify(obj);
-      fs.writeFileSync(__dirname + '/fileList.json', jsonStr, (wriErr) => {
-        if (wriErr) {
-          var msg = 'Error creating JSON File';
-          console.log(msg);
-          return { success: false, reason: msg };
-        } else {
-          var msg = 'JSON File created';
-          console.log(msg);
-          return { success: true, reason: msg };
-        }
-      });
-    } else {
-      var list = JSON.parse(data);
-      list.push(fileEntry);
-      const jsonStr = JSON.stringify(list);
-      fs.writeFileSync(__dirname + '/fileList.json', jsonStr, (wriErr) => {
-        if (wriErr) {
-          var msg = 'Error writing to JSON File';
-          console.log(msg);
-          return { success: false, reason: msg };
-        } else {
-          var msg = 'File added successfully';
-          console.log(msg);
-          return { success: true, reason: msg };
-        }
-      });
-    }
-    var msg = 'An error occurred creating an entry:  Should not be seeing this';
+  var filelist = fs.readFileSync(__dirname + '/fileList.json');
+
+  if (filelist === null) {
+    console.log('JSON File not found... creating now');
+    const obj = [
+      fileEntry,
+    ]
+    const jsonStr = JSON.stringify(obj);
+    fs.writeFileSync(__dirname + '/fileList.json', jsonStr);
+    var msg = 'JSON File created';
     console.log(msg);
-    return { success: false, reason: msg };
-  });
+    return { success: true, reason: msg };
+  }
+
+  var list = JSON.parse(data);
+  list.push(fileEntry);
+  const jsonStr = JSON.stringify(list);
+
+  fs.writeFileSync(__dirname + '/fileList.json', jsonStr);
+  
+  var msg = 'File added successfully';
+  console.log(msg);
+  return { success: true, reason: msg };
 }
 
 app.post('/uploads', upload, (req, res) => {
