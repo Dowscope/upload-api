@@ -121,6 +121,9 @@ function createEntry(filename) {
         }
       });
     }
+    var msg = 'An error occurred creating an entry:  Should not be seeing this';
+    console.log(msg);
+    return { success: false, reason: msg };
   });
 }
 
