@@ -316,7 +316,7 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
   console.log(`${email} | Getting Rulesets`);
   
   var result = await verifySession(session_id, email);
-  console.log('Validation Results: '.concat(result));
+  console.log('Validation Results: '.concat(result.success));
   
   if (result == undefined){
     return res.json({ success: false, reason: "No Results" })
