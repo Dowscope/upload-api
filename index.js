@@ -115,10 +115,10 @@ async function createEntry(filename) {
 
 async function verifySession(session_id, email) {
   if (!session_id){
-    return {success: false, reason: `Session ID Required: ${err}`};
+    return {success: false, reason: `Session ID Required`};
   }
   if (!email) {
-    return {success: false, reason: `Email Required: ${err}`};
+    return {success: false, reason: `Email Required`};
   }
 
   await pool.query(qryValidateSession, [session_id, email], (err, results) => {
