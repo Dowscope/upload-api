@@ -113,7 +113,7 @@ async function createEntry(filename) {
   
 }
 
-async function verifySession(session_id, email) {
+function verifySession(session_id, email) {
   if (!session_id){
     return {success: false, reason: `Session ID Required`};
   }
@@ -121,7 +121,7 @@ async function verifySession(session_id, email) {
     return {success: false, reason: `Email Required`};
   }
 
-  await pool.query(qryValidateSession, [session_id, email], (err, results) => {
+  pool.query(qryValidateSession, [session_id, email], (err, results) => {
     if (err) {
       const msg = 'Error getting session id: '.concat(err);
       console.log(msg);
@@ -309,11 +309,11 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
 // *********************************
 // RTS SERVER - Get RuleSets
 // *********************************
-app.post('/api/rtsgetrulesets', async (req, res) => {
+app.post('/api/rtsgetrulesets', (req, res) => {
   const {session_id, email} = req.body;
   console.log(`${email} | Getting Rulesets`);
   
-  var result = await verifySession(session_id, email);
+  var result = verifySession(session_id, email);
   console.log('Validation Results: '.concat(result));
   
   if (result == undefined){
