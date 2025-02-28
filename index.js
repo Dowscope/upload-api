@@ -305,6 +305,7 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
 // *********************************
 app.post('/api/rtsgetrulesets', async (req, res) => {
   const {session_id, email} = req.body;
+  console.log(`${session_id}| ${email} | Getting Rulesets`);
   var result = verifySession(session_id, email);
   if (result.length == 0 || !result.success){
     return res.json({ success: false, reason: result.reason })
