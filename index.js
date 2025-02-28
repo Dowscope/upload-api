@@ -130,6 +130,7 @@ async function verifySession(session_id, email) {
     if (results.length > 0) {
       return {success: true};
     }
+    return {success: false, reason: `Session ID or email Invalid`};
   });
 }
 
