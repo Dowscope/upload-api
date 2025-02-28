@@ -313,7 +313,7 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
   const {session_id, email} = req.body;
   console.log(`${email} | Getting Rulesets`);
   
-  var result = verifySession(session_id, email);
+  var result = await verifySession(session_id, email);
   if (result.length == 0 || !result.success){
     return res.json({ success: false, reason: result.reason })
   }
