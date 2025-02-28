@@ -303,7 +303,7 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
 // *********************************
 // RTS SERVER - Get RuleSets
 // *********************************
-app.get('/rtsgetrulesets', async (req, res) => {
+app.get('/api/rtsgetrulesets', async (req, res) => {
   const {session_id, email} = req.body;
   var result = verifySession(session_id, email);
   if (result.length == 0 || !result.success){
