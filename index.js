@@ -123,14 +123,19 @@ async function verifySession(session_id, email) {
 
   pool.query(qryValidateSession, [session_id, email], (err, results) => {
     if (err) {
-      console.log('Error getting session id: '.concat(err));
-      return {success: false, reason: `Error getting session id: ${err}`};
+      var msg = 'Error getting session id: '.concat(err);
+      console.log(msg);
+      return {success: false, reason: msg};
     }
     
     if (results.length > 0) {
-      return {success: true};
+      const msg = 'User Validated';
+      console.log(msg);
+      return {success: true, reason: msg};
     }
-    return {success: false, reason: `Session ID or email Invalid`};
+    const msg = 'Session ID or email Invalid';
+    console.log(msg);
+    return {success: false, reason: msg};
   });
 }
 
