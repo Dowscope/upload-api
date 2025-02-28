@@ -317,7 +317,7 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
   if (result.length == 0 || !result.success){
     return res.json({ success: false, reason: result.reason })
   }
-
+  console.log('Validation Results: '.concat(result));
   try {
     const url = 'http://192.168.0.113/rulesets';
     const rs = await axios.get(url);
