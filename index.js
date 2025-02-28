@@ -121,7 +121,7 @@ async function verifySession(session_id, email) {
     return {success: false, reason: `Email Required`};
   }
 
-  await pool.query(qryValidateSession, [session_id, email], (err, results) => {
+  pool.query(qryValidateSession, [session_id, email], (err, results) => {
     if (err) {
       console.log('Error getting session id: '.concat(err));
       return {success: false, reason: `Error getting session id: ${err}`};
@@ -305,7 +305,7 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
 // *********************************
 app.post('/api/rtsgetrulesets', async (req, res) => {
   const {session_id, email} = req.body;
-  console.log(`${session_id}| ${email} | Getting Rulesets`);
+  console.log(`${email} | Getting Rulesets`);
   var result = verifySession(session_id, email);
   if (result.length == 0 || !result.success){
     return res.json({ success: false, reason: result.reason })
