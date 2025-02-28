@@ -123,7 +123,7 @@ async function verifySession(session_id, email) {
 
   pool.query(qryValidateSession, [session_id, email], (err, results) => {
     if (err) {
-      var msg = 'Error getting session id: '.concat(err);
+      const msg = 'Error getting session id: '.concat(err);
       console.log(msg);
       return {success: false, reason: msg};
     }
