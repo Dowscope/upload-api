@@ -310,16 +310,13 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
     return res.json({ success: false, reason: result.reason })
   }
 
-  var resdata = '';
   try {
     const url = 'http://192.168.0.113/rulesets';
     const rs = await axios.get(url);
-    resdata = rs.data;
+    res.json({ success: true, filedata: rs.data });
   } catch (error) {
     return res.json({ success: false, reason: error })
   }
-
-  res.json({ success: true, resdata: resdata });
 });
 
 // *********************************
