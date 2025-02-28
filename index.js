@@ -316,7 +316,9 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
   var result = await verifySession(session_id, email);
   console.log('Validation Results: '.concat(result));
   
-  if (result == undefined || !result.success){
+  if (result == undefined){
+    return res.json({ success: false, reason: "No Results" })
+  }else if (!result.success){
     return res.json({ success: false, reason: result.reason })
   }
 
