@@ -113,6 +113,26 @@ async function createEntry(filename) {
   
 }
 
+async function verifySession(session_id, email) {
+  if (!session_id){
+    return {success: false, reason: `Session ID Required: ${err}`};
+  }
+  if (!email) {
+    return {success: false, reason: `Email Required: ${err}`};
+  }
+
+  await pool.query(qryValidateSession, [session_id, email], (err, results) => {
+    if (err) {
+      console.log('Error getting session id: '.concat(err));
+      return {success: false, reason: `Error getting session id: ${err}`};
+    }
+    
+    if (results.length > 0) {
+      return {success: true};
+    }
+  });
+}
+
 app.post('/uploads', upload, (req, res) => {
   const result = createEntry(req.file.originalname);
   res.json({ success: result.success, reason: result.reason, file: req.file});
@@ -279,7 +299,29 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
     }
   });
 });
-          
+
+// *********************************
+// RTS SERVER - Get RuleSets
+// *********************************
+app.get('/rtsgetrulesets', async (req, res) => {
+  const {session_id, email} = req.body;
+  var result = verifySession(session_id, email);
+  if (result.length == 0 || !result.success){
+    return res.json({ success: false, reason: result.reason })
+  }
+
+  var resdata = '';
+  try {
+    const url = 'http://192.168.0.113/rulesets';
+    const rs = await axios.get(url);
+    resdata = rs.data;
+  } catch (error) {
+    return res.json({ success: false, reason: error })
+  }
+
+  res.json({ success: true, resdata: resdata });
+});
+
 // *********************************
 // Add User
 // *********************************
