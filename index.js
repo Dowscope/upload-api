@@ -315,9 +315,11 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
   
   var result = await verifySession(session_id, email);
   console.log('Validation Results: '.concat(result));
-  if (result.length == 0 || !result.success){
+  
+  if (result == undefined || !result.success){
     return res.json({ success: false, reason: result.reason })
   }
+  
   try {
     const url = 'http://192.168.0.113/rulesets';
     const rs = await axios.get(url);
