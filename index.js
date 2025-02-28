@@ -113,7 +113,7 @@ async function createEntry(filename) {
   
 }
 
-async function verifySession(session_id, email) {
+function verifySession(session_id, email) {
   if (!session_id){
     return {success: false, reason: `Session ID Required`};
   }
@@ -330,6 +330,8 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
   // } catch (error) {
   //   return res.json({ success: false, reason: error })
   // }
+
+  return res.json({ success: false, filedata: 'You should not be seeing this' });
 });
 
 // *********************************
