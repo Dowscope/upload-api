@@ -114,28 +114,30 @@ async function createEntry(filename) {
 }
 
 function verifySession(session_id, email) {
-  if (!session_id){
-    return {success: false, reason: `Session ID Required`};
-  }
-  if (!email) {
-    return {success: false, reason: `Email Required`};
-  }
+  return new Promise((resolve, reject) => {
+    if (!session_id){
+      return resolve({success: false, reason: `Session ID Required`});
+    }
+    if (!email) {
+      return resolve({success: false, reason: `Email Required`});
+    }
 
-  pool.query(qryValidateSession, [session_id, email], (err, results) => {
-    if (err) {
-      const msg = 'Error getting session id: '.concat(err);
+    pool.query(qryValidateSession, [session_id, email], (err, results) => {
+      if (err) {
+        const msg = 'Error getting session id: '.concat(err);
+        console.log(msg);
+        return reject({success: false, reason: msg});
+      }
+      
+      if (results.length > 0) {
+        const msg = 'User Validated';
+        console.log(msg);
+        return resolve({success: true, reason: msg});
+      }
+      const msg = 'Session ID or email Invalid';
       console.log(msg);
-      return {success: false, reason: msg};
-    }
-    
-    if (results.length > 0) {
-      const msg = 'User Validated';
-      console.log(msg);
-      return {success: true, reason: msg};
-    }
-    const msg = 'Session ID or email Invalid';
-    console.log(msg);
-    return {success: false, reason: msg};
+      return resolve({success: false, reason: msg});
+    });
   });
 }
 
@@ -309,11 +311,11 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
 // *********************************
 // RTS SERVER - Get RuleSets
 // *********************************
-app.post('/api/rtsgetrulesets', (req, res) => {
+app.post('/api/rtsgetrulesets', async (req, res) => {
   const {session_id, email} = req.body;
   console.log(`${email} | Getting Rulesets`);
   
-  var result = verifySession(session_id, email);
+  var result = await verifySession(session_id, email);
   console.log('Validation Results: '.concat(result));
   
   if (result == undefined){
