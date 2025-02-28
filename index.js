@@ -319,15 +319,15 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
   if (result == undefined || !result.success){
     return res.json({ success: false, reason: result.reason })
   }
-  
-  try {
-    const url = 'http://192.168.0.113/rulesets';
-    const rs = await axios.get(url);
-    console.log(`Data: ${rs}`);
-    res.json({ success: true, filedata: rs.data });
-  } catch (error) {
-    return res.json({ success: false, reason: error })
-  }
+
+  // try {
+  //   const url = 'http://192.168.0.113/rulesets';
+  //   const rs = await axios.get(url);
+  //   console.log(`Data: ${rs}`);
+  //   res.json({ success: true, filedata: rs.data });
+  // } catch (error) {
+  //   return res.json({ success: false, reason: error })
+  // }
 });
 
 // *********************************
