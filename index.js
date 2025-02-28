@@ -113,7 +113,7 @@ async function createEntry(filename) {
   
 }
 
-function verifySession(session_id, email) {
+async function verifySession(session_id, email) {
   if (!session_id){
     return {success: false, reason: `Session ID Required`};
   }
