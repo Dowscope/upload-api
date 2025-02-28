@@ -121,7 +121,7 @@ async function verifySession(session_id, email) {
     return {success: false, reason: `Email Required`};
   }
 
-  pool.query(qryValidateSession, [session_id, email], (err, results) => {
+  await pool.query(qryValidateSession, [session_id, email], (err, results) => {
     if (err) {
       const msg = 'Error getting session id: '.concat(err);
       console.log(msg);
