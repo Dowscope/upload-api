@@ -308,6 +308,28 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
   });
 });
 
+app.post('/api/rtsdownloadruleset', async (req, res) => {
+  const {session_id, email, filename} = req.body;
+  console.log(`${email} | Downloading Ruleset: ${filename}`);
+
+  var result = await verifySession(session_id, email);
+  console.log('Validation Results: '.concat(result.success));
+
+  if (result == undefined){
+    return res.json({ success: false, reason: "No Results" })
+  }else if (!result.success){
+    return res.json({ success: false, reason: result.reason })
+  }
+
+  try {
+    const url = 'http://192.168.0.113/ruleset/'.concat(filename);
+    const rs = await axios.get(url);
+    return res.json({ success: true, filedata: rs.data });
+  } catch (error) {
+    return res.json({ success: false, reason: error })
+  }
+});
+
 // *********************************
 // RTS SERVER - Get RuleSets
 // *********************************
