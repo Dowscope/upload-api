@@ -324,7 +324,7 @@ app.post('/api/rtsdownloadruleset', async (req, res) => {
   try {
     const url = 'http://192.168.0.113/ruleset/'.concat(filename);
     const rs = await axios.get(url);
-    return res.json({ success: true, filedata: rs.data });
+    return res.json({ success: true, filedata: rs.data.file });
   } catch (error) {
     return res.json({ success: false, reason: error })
   }
