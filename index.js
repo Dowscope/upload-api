@@ -352,7 +352,7 @@ app.post('/api/rtsgetlogfile', async (req, res) => {
   try {
     const url = 'http://192.168.0.113/logfile/'.concat(filename);
     const rs = await axios.get(url);
-    return res.json({ success: true, filedata: rs });
+    return res.json({ success: true, filedata: rs.data });
   } catch (error) {
     return res.json({ success: false, reason: error })
   }
