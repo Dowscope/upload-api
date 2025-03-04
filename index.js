@@ -308,6 +308,9 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
   });
 });
 
+// *********************************
+// RTS SERVER - Download RuleSet
+// *********************************
 app.post('/api/rtsdownloadruleset', async (req, res) => {
   const {session_id, email, filename} = req.body;
   console.log(`${email} | Downloading Ruleset: ${filename}`);
@@ -323,6 +326,31 @@ app.post('/api/rtsdownloadruleset', async (req, res) => {
 
   try {
     const url = 'http://192.168.0.113/ruleset/'.concat(filename);
+    const rs = await axios.get(url);
+    return res.json({ success: true, filedata: rs.data.file });
+  } catch (error) {
+    return res.json({ success: false, reason: error })
+  }
+});
+
+// *********************************
+// RTS SERVER - Get Log File
+// *********************************
+app.post('/api/rtsgetlogfile', async (req, res) => {
+  const {session_id, email, filename} = req.body;
+  console.log(`${email} | Getting Log File: ${filename}`);
+
+  var result = await verifySession(session_id, email);
+  console.log('Validation Results: '.concat(result.success));
+
+  if (result == undefined){
+    return res.json({ success: false, reason: "No Results" })
+  }else if (!result.success){
+    return res.json({ success: false, reason: result.reason })
+  }
+
+  try {
+    const url = 'http://192.168.0.113/logfile/'.concat(filename);
     const rs = await axios.get(url);
     return res.json({ success: true, filedata: rs.data.file });
   } catch (error) {
