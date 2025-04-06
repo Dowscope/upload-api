@@ -161,34 +161,10 @@ app.get('/list', function(req, res) {
   })
 });
 
-app.get('/list_music', function(req, res) {
-  const dirPath = '/store/Music/Records/';
-  fs.readdir(dirPath, (readErr, files) => {
-    if (readErr) {
-      console.log("LIST MUSIC ERROR: " + readErr);
-      res.send(readErr);
-      return;
-    }
-
-    const fileList = [];
-
-    files.forEach(file => {
-      if (file[0] != '.'){
-        const filePath = path.join(dirPath, file);
-        const data = fs.statSync(filePath)
-        fileList.push({
-          fileName: file,
-          uploaded: data.mtime,
-          timestamp: null,
-          downloaded: null,
-        });
-      }
-    });
-
-    const fileListJSON = JSON.stringify(fileList);
-    console.log("LIST MUSIC requested");
-    res.send(fileListJSON);
-  })
+app.get('/list_music', async (req, res) => {
+  const url = 'http://192.168.0.101/api/list';
+  const rs = await axios.get(url);
+  res.json(rs);
 });
 
 app.use(bp.json());
