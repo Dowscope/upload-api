@@ -161,14 +161,14 @@ app.get('/list', function(req, res) {
   })
 });
 
+app.use(bp.json());
+
 app.get('/api/list_music', async (req, res) => {
   const url = 'http://192.168.0.101/list';
   const rs = await axios.get(url);
-  console.log(req);
-  res.json(rs);
+  console.log(rs);
+  // res.json(rs);
 });
-
-app.use(bp.json());
 
 const sanitizeEmail = (email) => email.trim().toLowerCase();
 
