@@ -178,10 +178,13 @@ app.get('/api/getMusicFile', async (req, res) => {
     params: {
       filename: filename,
     },
-    responseType: 'blob',
+    responseType: 'arraybuffer',
   });
   console.log(rs.headers);
-  res.sendFile(rs.data);
+  
+  res.setHeader('Content-Type', 'audio/mpeg');
+  res.setHeader('Content-Length', data.data.length);
+  res.send(rs.data);
 });
 
 const sanitizeEmail = (email) => email.trim().toLowerCase();
