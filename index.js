@@ -180,7 +180,7 @@ app.get('/api/getMusicFile', async (req, res) => {
     },
     responseType: 'blob',
   });
-  // console.log(rs);
+  console.log(rs);
   res.send(rs.data);
 });
 
