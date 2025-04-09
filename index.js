@@ -174,7 +174,7 @@ app.get('/api/getMusicFile', async (req, res) => {
   const { filename } = req.query;
   console.log(`Getting Music File: ${filename}`);
   const url = 'http://192.168.0.101/file';
-  const rs = axios.get(url, {
+  const rs = await axios.get(url, {
     params: {
       filename: filename,
     },
