@@ -180,8 +180,8 @@ app.get('/api/getMusicFile', async (req, res) => {
     },
     responseType: 'blob',
   });
-  console.log(rs);
-  res.send(rs.data);
+  console.log(rs.headers);
+  res.sendFile(rs.data);
 });
 
 const sanitizeEmail = (email) => email.trim().toLowerCase();
