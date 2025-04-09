@@ -170,6 +170,20 @@ app.get('/api/list_music', async (req, res) => {
   res.json(rs.data);
 });
 
+app.get('/api/getMusicFile', async (req, res) => {
+  const { filename } = req.query;
+  console.log(`Getting Music File: ${filename}`);
+  const url = 'http://192.168.0.101/file';
+  const rs = axios.get(url, {
+    params: {
+      filename: filename,
+    },
+    responseType: 'blob',
+  });
+  // console.log(rs);
+  res.send(rs.data);
+});
+
 const sanitizeEmail = (email) => email.trim().toLowerCase();
 
 // *********************************
