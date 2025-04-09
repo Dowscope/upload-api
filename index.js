@@ -182,7 +182,7 @@ app.get('/api/getMusicFile', async (req, res) => {
   console.log(rs.headers);
 
   res.setHeader('Content-Type', 'audio/mpeg');
-  res.setHeader('Content-Length', data.data.length);
+  res.setHeader('Content-Length', rs.data.length);
   res.send(rs.data);
 });
 
