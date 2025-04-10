@@ -177,12 +177,9 @@ app.get('/api/getMusicFile', async (req, res) => {
   const rs = await axios.get(url, {
     params: {
       filename: filename,
-    }
+    },
   });
   console.log(rs.headers);
-
-  res.setHeader('Content-Type', 'audio/mpeg');
-  res.setHeader('Content-Length', rs.data.length);
   res.send(rs.data);
 });
 
