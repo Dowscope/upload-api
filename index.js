@@ -129,7 +129,7 @@ function verifySession(session_id, email) {
       return resolve({success: false, reason: `Email Required`});
     }
 
-    pool.query(qryValidateSession, [session_id, email], (err, results) => {
+    pool_main.query(qryValidateSession, [session_id, email], (err, results) => {
       if (err) {
         const msg = 'Error getting session id: '.concat(err);
         console.log(msg);
@@ -139,7 +139,18 @@ function verifySession(session_id, email) {
       if (results.length > 0) {
         const msg = 'User Validated';
         console.log(msg);
-        return resolve({success: true, reason: msg});
+
+        const qryGetGroups = "SELECT group_id FROM user_groups WHERE user_id = ?";
+        pool_main.query(qryGetGroups, [results[0].user_id], (err, results) => {
+          if (err) {
+            const msg = 'Error getting user groups: '.concat(err);
+            console.log(msg);
+            return reject({success: false, reason: msg});
+          }
+          const groups = results.map(row => row.group_id);
+          return resolve({success: true, reason: msg, groups: groups});
+        });
+        return resolve({success: false, reason: "User does not have permission"});
       }
       const msg = 'Session ID or email Invalid';
       console.log(msg);
@@ -359,7 +370,7 @@ app.post('/api/rtsgetlogfile', async (req, res) => {
 // RTS SERVER - Get RuleSets
 // *********************************
 app.post('/api/rtsgetrulesets', async (req, res) => {
-  const {session_id, email} = req.body;
+  const {session_id, email } = req.body;
   console.log(`${email} | Getting Rulesets`);
   
   var result = await verifySession(session_id, email);
