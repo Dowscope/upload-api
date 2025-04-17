@@ -22,10 +22,17 @@ const pool = mysql.createPool({
   database: 'RTS'
 });
 
+const pool_main = mysql.createPool({
+  host: '192.168.0.235',
+  user: 'dbuser',
+  password: 'Qwerty2017',
+  database: 'MAINSITE'
+});
+
 async function hashPassword(plainPassword) {
   const saltRounds = 10; // Number of salt rounds (higher is more secure but slower)
   const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
-  // console.log("Hashed Password:", hashedPassword);
+  console.log("Hashed Password:", hashedPassword);
   return hashedPassword;
 }
 
@@ -453,11 +460,24 @@ app.post('/sessioncheck', function (req, res) {
 // Check User
 // *********************************
 app.post('/checkUser', async function(req, res) {
-  const { email, password } = req.body;
+  const { email, password, cat } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
+  if (!cat) {
+    return res.status(400).json({ error: 'Category is required' });
+  }
+
+  db = pool_main;
+  if (cat === 'rts') {
+    db = pool;
+  } else if (cat === 'main') {
+    db = pool_main;
+  } else {
+    return res.status(400).json({ error: 'Invalid category' });
+  }
+  console.log(`Checking User: ${email} | Category: ${cat}`);
 
   // Validate email format
   if (!isValidEmail(email)) {
@@ -466,7 +486,8 @@ app.post('/checkUser', async function(req, res) {
 
   const query = 'SELECT password, userid, first_name, last_name, user_type_id FROM USERS WHERE email = ?';
 
-  pool.query(query, [email], async (err, results) => {
+
+  db.query(query, [email], async (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
       return res.status(500).json({ error: 'Query Failed' });
@@ -483,14 +504,14 @@ app.post('/checkUser', async function(req, res) {
           futureDate.setDate(currentDate.getDate() + 7);
 
           const activeSession = "SELECT session_id, session, expire_date FROM sessionstore WHERE user_id = ? AND status = 1 AND expire_date > CURDATE()";
-          pool.query(activeSession, [userId], (activeErr, activeResults) => {
+          db.query(activeSession, [userId], (activeErr, activeResults) => {
             if (activeErr) {
               console.error("Active Session Error:", sessionErr);
               return res.status(500).json({ error: "Failed to get active session" });
             }
             activeResults.forEach(result => {
               const ar_query = `UPDATE sessionstore SET status = 0 WHERE session_id = ?`;
-              pool.query(ar_query, [result.session_id], (error, results) => {
+              db.query(ar_query, [result.session_id], (error, results) => {
                 if (error) {
                   console.error('Error updating status:', error);
                 } else {
@@ -502,13 +523,21 @@ app.post('/checkUser', async function(req, res) {
 
           const insertSessionQuery = "INSERT INTO sessionstore (user_id, session, expire_date, status) VALUES (?, ?, ?, ?)";
           
-          pool.query(insertSessionQuery, [userId, sessionId, futureDate, 1], (sessionErr, sessionResults) => {
+          db.query(insertSessionQuery, [userId, sessionId, futureDate, 1], (sessionErr, sessionResults) => {
               if (sessionErr) {
                   console.error("Session Insert Error:", sessionErr);
                   return res.status(500).json({ error: "Failed to create session" });
               }
-              return res.json({ success: true, sessionId: sessionId, firstname: results[0].first_name, lastname: results[0].last_name, type: results[0].user_type_id });
           });
+          
+          const updateLoginInfo = "UPDATE USERS SET last_login_date = CURRENT_TIMESTAMP WHERE userid = ?";
+          db.query(updateLoginInfo, [userId], (updateErr, updateResults) => {
+            if (updateErr) {
+              console.error("Error updating last login date:", updateErr);
+            }
+            console.log("Last login date updated successfully");
+          });
+          return res.json({ success: true, sessionId: sessionId, firstname: results[0].first_name, lastname: results[0].last_name, type: results[0].user_type_id });
         } catch (error) {
             console.error("Unexpected Error:", error);
             return res.status(500).json({ error: "Internal Server Error" });
