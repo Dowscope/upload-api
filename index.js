@@ -551,7 +551,19 @@ app.post('/checkUser', async function(req, res) {
             }
             console.log("Last login date updated successfully");
           });
-          return res.json({ success: true, sessionId: sessionId, firstname: results[0].first_name, lastname: results[0].last_name, type: results[0].user_type_id });
+
+          const groups = [];
+          const getUserGroups = "SELECT group_id FROM user_groups WHERE user_id = ?";
+          db.query(getUserGroups, [userId], (groupErr, groupResults) => {
+            if (groupErr) {
+              console.error("Error getting user groups:", groupErr);
+              return res.status(500).json({ error: "Failed to get user groups" });
+            }
+            console.log("User groups retrieved successfully");
+            groups = groupResults.map(group => group.group_id);
+          });
+
+          return res.json({ success: true, sessionId: sessionId, firstname: results[0].first_name, lastname: results[0].last_name, type: results[0].user_type_id, groups: groups });
         } catch (error) {
             console.error("Unexpected Error:", error);
             return res.status(500).json({ error: "Internal Server Error" });
