@@ -434,15 +434,28 @@ app.post('/adduser', (req, res) => {
 
 // *********************************
 // Check Session Valid
+// Updated for RTS and Main Servers
 // *********************************
 app.post('/sessioncheck', function (req, res) {
-  const session_id = req.body;
+  const { session_id, cat } = req.body;
   if (!session_id){
     return res.json({ valid: false })
   }
+  if (!cat) {
+    return res.status(400).json({ valid: false, error: 'Category is required' });
+  }
+
+  db = pool_main;
+  if (cat === 'rts') {
+    db = pool;
+  } else if (cat === 'main') {
+    db = pool_main;
+  } else {
+    return res.status(400).json({ error: 'Invalid category' });
+  }
 
   const query = "SELECT u.email, u.first_name, u.last_name, u.user_type_id FROM sessionstore s JOIN USERS u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE()";
-  pool.query(query, [session_id], (err, results) => {
+  db.query(query, [session_id], (err, results) => {
     if (err) {
       console.log('Error: '.concat(err));
       return res.status(400).json({error: "Error getting session"});
@@ -458,6 +471,7 @@ app.post('/sessioncheck', function (req, res) {
 
 // *********************************
 // Check User
+// Updated for RTS and Main Servers
 // *********************************
 app.post('/checkUser', async function(req, res) {
   const { email, password, cat } = req.body;
