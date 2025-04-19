@@ -147,7 +147,7 @@ function verifySession(session_id, email) {
             console.log(msg);
             return reject({success: false, reason: msg});
           }
-          var groups = results.map(row => row.group_id);
+          const groups = results.map(row => row.group_id);
           return resolve({success: true, reason: msg, groups: groups});
         });
         return resolve({success: false, reason: "User does not have permission"});
@@ -563,7 +563,7 @@ app.post('/checkUser', async function(req, res) {
             console.log("Last login date updated successfully");
           });
 
-          const groups = [];
+          let groups = [];
           const getUserGroups = "SELECT group_id FROM user_groups WHERE user_id = ?";
           db.query(getUserGroups, [userId], (groupErr, groupResults) => {
             if (groupErr) {
