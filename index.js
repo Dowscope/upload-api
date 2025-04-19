@@ -147,7 +147,7 @@ function verifySession(session_id, email) {
             console.log(msg);
             return reject({success: false, reason: msg});
           }
-          const groups = results.map(row => row.group_id);
+          var groups = results.map(row => row.group_id);
           return resolve({success: true, reason: msg, groups: groups});
         });
         return resolve({success: false, reason: "User does not have permission"});
