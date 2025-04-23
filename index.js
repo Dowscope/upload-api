@@ -401,7 +401,7 @@ app.get('/api/getHolidays', (req, res) => {
     return res.status(400).json({ success: false, reason: 'Year is required' });
   }
 
-  const qry = 'SELECT * FROM holidays WHERE year = ? and active = 1';
+  const qry = "SELECT * FROM holidays WHERE YEAR(STR_TO_DATE(date, '%Y-%m-%d')) = ? and active = 1";
   pool_main.query(qry, [year], async (err, results) => {
     if (err) {
       console.log('Error getting holidays: '.concat(err));
@@ -419,7 +419,7 @@ app.get('/api/getHolidays', (req, res) => {
 // *********************************
 // Finance - Remove Holiday
 // *********************************
-app.post('/api/getHolidays', (req, res) => {
+app.post('/api/removeHoliday', (req, res) => {
   const { date } = req.body;
   console.log(`Removing holiday for: ${date}`);
   if (!date) {
