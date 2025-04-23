@@ -437,11 +437,10 @@ app.post('/api/removeHoliday', (req, res) => {
       console.log('Holiday removed successfully');
       return res.json({ success: true });
     }
-    const msg = 'Holiday removal failed';
+    const msg = `Holiday removal failed: ${results}`;
     console.log(msg);
     return res.json({ success: false, reason: msg });
   });
-  return res.json({ success: false, reason: "Shouldn't Get here" });
 });
 
 // *********************************
