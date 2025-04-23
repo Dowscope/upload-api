@@ -395,14 +395,14 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
 // Finance - Get Ontario Holidays
 // *********************************
 app.get('/api/getHolidays', (req, res) => {
-  const { year } = req.query;
-  console.log(`Getting Holidays for Year: ${year}`);
+  const { year, active } = req.query;
+  console.log(`Getting ${active ? 'ACTIVE' : 'INACTIVE'} Holidays for Year: ${year}`);
   if (!year) {
     return res.status(400).json({ success: false, reason: 'Year is required' });
   }
 
-  const qry = "SELECT * FROM holidays WHERE YEAR(STR_TO_DATE(date, '%Y-%m-%d')) = ? and active = 1";
-  pool_main.query(qry, [year], (err, results) => {
+  const qry = "SELECT * FROM holidays WHERE YEAR(STR_TO_DATE(date, '%Y-%m-%d')) = ? and active = ?";
+  pool_main.query(qry, [year, active], (err, results) => {
     if (err) {
       console.log('Error getting holidays: '.concat(err));
       return res.status(400).json({ success: false, reason: `Error getting holidays: ${err}` });
@@ -433,13 +433,7 @@ app.post('/api/removeHoliday', (req, res) => {
       console.log(msg);
       return res.status(400).json({ success: false, reason: msg });
     }
-    if (results.length > 0) {
-      console.log('Holiday removed successfully');
-      return res.json({ success: true });
-    }
-    const msg = `Holiday removal failed: ${results}`;
-    console.log(msg);
-    return res.json({ success: false, reason: msg });
+    return res.json({ success: true });
   });
 });
 
