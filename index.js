@@ -427,7 +427,7 @@ app.post('/api/removeHoliday', (req, res) => {
   }
 
   const qry = "UPDATE holidays SET active = FALSE WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
-  pool.query(qry, [date], (err, results) => {
+  pool_main.query(qry, [date], (err, results) => {
     if (err) {
       const msg = 'Error removing holiday: '.concat(err);
       console.log(msg);
