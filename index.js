@@ -392,6 +392,25 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
 });
 
 // *********************************
+// Finance - Get Ontario Holidays
+// *********************************
+app.get('/api/getHolidays', async (req, res) => {
+  const { year } = req.body;
+  console.log(`${email} | Getting Holidays`);
+  if (!year) {
+    return res.status(400).json({ error: 'Year is required' });
+  }
+
+  try {
+    const url = `https://date.nager.at/api/v3/publicholidays/${year}/ON`;
+    const rs = await axios.get(url);
+    return res.json({ success: true, filedata: rs.data });
+  } catch (error) {
+    return res.json({ success: false, reason: error })
+  }
+});
+
+// *********************************
 // Add User
 // *********************************
 app.post('/adduser', (req, res) => {
