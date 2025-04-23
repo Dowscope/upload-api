@@ -455,8 +455,8 @@ app.get('/api/updateHolidays', async (req, res) => {
   const url = `https://date.nager.at/api/v3/publicHolidays/${year}/CA`;
   const qry = `SELECT * FROM holidays WHERE date = ?`;
   try {
-    const res = await axios.get(url);
-    const ontarioHolidays = res.data.filter(
+    const rs = await axios.get(url);
+    const ontarioHolidays = rs.data.filter(
       h => !h.counties || h.counties.includes('CA-ON')
     );
     if (ontarioHolidays.length > 0) {
@@ -474,7 +474,7 @@ app.get('/api/updateHolidays', async (req, res) => {
           }
           if (results.length === 0) {
             console.log('Adding Holiday: '.concat(date));
-            pool.query(qryAdd, [date, name], (err, results) => {
+            pool_main.query(qryAdd, [date, name], (err, results) => {
               if (err) {
                 const msg = 'Error adding holiday: '.concat(err);
                 console.log(msg);
