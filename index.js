@@ -420,14 +420,14 @@ app.get('/api/getHolidays', (req, res) => {
 // Finance - Remove Holiday
 // *********************************
 app.post('/api/removeHoliday', (req, res) => {
-  const { date } = req.body;
+  const { date, active } = req.body;
   console.log(`Removing holiday for: ${date}`);
   if (!date) {
     return res.status(400).json({ success: false, reason: 'Date is required' });
   }
 
-  const qry = "UPDATE holidays SET active = FALSE WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
-  pool_main.query(qry, [date], (err, results) => {
+  const qry = "UPDATE holidays SET active = ? WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
+  pool_main.query(qry, [date, active], (err, results) => {
     if (err) {
       const msg = 'Error removing holiday: '.concat(err);
       console.log(msg);
