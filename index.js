@@ -408,7 +408,7 @@ app.get('/api/getHolidays', (req, res) => {
       return res.status(400).json({ success: false, reason: `Error getting holidays: ${err}` });
     }
     if (results.length > 0) {
-      console.log('Holidays Found: '.concat(results));
+      console.log('Holidays Found');
       return res.json({ success: true, holidays: results });
     }
     console.log('No Holidays Found');
@@ -441,6 +441,7 @@ app.post('/api/removeHoliday', (req, res) => {
     console.log(msg);
     return res.json({ success: false, reason: msg });
   });
+  return res.json({ success: false, reason: "Shouldn't Get here" });
 });
 
 // *********************************
