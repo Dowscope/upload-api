@@ -402,7 +402,7 @@ app.get('/api/getHolidays', (req, res) => {
   }
 
   const qry = 'SELECT * FROM holidays WHERE year = ? and active = 1';
-  pool.query(qry, [year], async (err, results) => {
+  pool_main.query(qry, [year], async (err, results) => {
     if (err) {
       console.log('Error getting holidays: '.concat(err));
       return res.status(400).json({ success: false, reason: `Error getting holidays: ${err}` });
