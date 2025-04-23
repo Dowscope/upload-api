@@ -395,16 +395,16 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
 // Finance - Get Ontario Holidays
 // *********************************
 app.get('/api/getHolidays', async (req, res) => {
-  const { year } = req.body;
-  console.log(`${email} | Getting Holidays`);
+  const { year } = req.query;
+  console.log(`Getting Holidays for Year: ${year}`);
   if (!year) {
     return res.status(400).json({ error: 'Year is required' });
   }
 
   try {
-    const url = `https://date.nager.at/api/v3/publicholidays/${year}/ON`;
+    const url = `https://date.nager.at/api/v3/publicholidays/${year}/CA`;
     const rs = await axios.get(url);
-    return res.json({ success: true, filedata: rs.data });
+    return res.json({ success: true, holidays: rs.data });
   } catch (error) {
     return res.json({ success: false, reason: error })
   }
