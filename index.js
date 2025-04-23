@@ -394,17 +394,109 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
 // *********************************
 // Finance - Get Ontario Holidays
 // *********************************
-app.get('/api/getHolidays', async (req, res) => {
+app.get('/api/getHolidays', (req, res) => {
   const { year } = req.query;
   console.log(`Getting Holidays for Year: ${year}`);
   if (!year) {
-    return res.status(400).json({ error: 'Year is required' });
+    return res.status(400).json({ success: false, reason: 'Year is required' });
   }
 
+  const qry = 'SELECT * FROM holidays WHERE year = ? and active = 1';
+  pool.query(qry, [year], async (err, results) => {
+    if (err) {
+      console.log('Error getting holidays: '.concat(err));
+      return res.status(400).json({ success: false, reason: `Error getting holidays: ${err}` });
+    }
+    if (results.length > 0) {
+      console.log('Holidays Found: '.concat(results));
+      return res.json({ success: true, holidays: results });
+    }
+    console.log('No Holidays Found');
+    return res.json({ success: false, reason: 'No Holidays Found' });
+  });
+});
+
+// *********************************
+// Finance - Remove Holiday
+// *********************************
+app.post('/api/getHolidays', (req, res) => {
+  const { date } = req.body;
+  console.log(`Removing holiday for: ${date}`);
+  if (!date) {
+    return res.status(400).json({ success: false, reason: 'Date is required' });
+  }
+
+  const qry = "UPDATE holidays SET active = FALSE WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
+  pool.query(qry, [year], async (err, results) => {
+    if (err) {
+      const msg = 'Error removing holiday: '.concat(err);
+      console.log(msg);
+      return res.status(400).json({ success: false, reason: msg });
+    }
+    if (results.length > 0) {
+      console.log('Holiday removed successfully');
+      return res.json({ success: true });
+    }
+    const msg = 'Holiday removal failed';
+    console.log(msg);
+    return res.json({ success: false, reason: msg });
+  });
+});
+
+// *********************************
+// Finance - Update Holidays
+// *********************************
+app.get('/api/updateHolidays', async (req, res) => {
+  console.log("Updating Holidays");
+  const { year } = req.query;
+  if (!year) {
+    return res.status(400).json({ success: false, reason: 'Year is required' });
+  }
+  const url = `https://date.nager.at/api/v3/publicHolidays/${year}/CA`;
+  const qry = `SELECT * FROM holidays WHERE date = ?`;
   try {
-    const url = `https://date.nager.at/api/v3/publicholidays/${year}/CA`;
-    const rs = await axios.get(url);
-    return res.json({ success: true, holidays: rs.data });
+    const res = await axios.get(url);
+    const ontarioHolidays = res.data.filter(
+      h => !h.counties || h.counties.includes('CA-ON')
+    );
+    pool_main.query(qry, [year], async (err, results) => {
+      if (err) {
+        const msg = 'Error getting holidays: '.concat(err);
+        console.log(msg);
+        return res.status(400).json({ success: false, reason: msg });
+      }
+      if (results.length > 0) {
+        console.log('Holidays Found: '.concat(results));
+        const qryCheck = "SELECT * FROM holidays WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
+        const qryAdd = "INSERT INTO holidays (date, name, active) VALUES (STR_TO_DATE(?, '%Y-%m-%d'), ?, 1)";
+
+        for (holiday of ontarioHolidays) {
+          const date = holiday.date;
+          const name = holiday.localName;
+          pool_main.query(qryCheck, [date], async (err, results) => {
+            if (err) {
+              const msg = 'Error checking holidays: '.concat(err);
+              console.log(msg);
+              return res.status(400).json({ success: false, reason: msg });
+            }
+            if (results.length === 0) {
+              console.log('Adding Holiday: '.concat(date));
+              pool.query(qryAdd, [date, name], (err, results) => {
+                if (err) {
+                  const msg = 'Error adding holiday: '.concat(err);
+                  console.log(msg);
+                  return res.status(400).json({ success: false, reason: msg });
+                }
+                console.log('Holiday added successfully');
+              });
+            }
+          });
+        }
+        return res.json({ success: true });
+      }
+      console.log('No Holidays Found');
+      return res.json({ success: false, reason: 'No Holidays Found' });
+    });
   } catch (error) {
     return res.json({ success: false, reason: error })
   }
