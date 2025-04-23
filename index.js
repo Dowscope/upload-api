@@ -402,7 +402,7 @@ app.get('/api/getHolidays', (req, res) => {
   }
 
   const qry = "SELECT * FROM holidays WHERE YEAR(STR_TO_DATE(date, '%Y-%m-%d')) = ? and active = 1";
-  pool_main.query(qry, [year], async (err, results) => {
+  pool_main.query(qry, [year], (err, results) => {
     if (err) {
       console.log('Error getting holidays: '.concat(err));
       return res.status(400).json({ success: false, reason: `Error getting holidays: ${err}` });
@@ -419,7 +419,7 @@ app.get('/api/getHolidays', (req, res) => {
 // *********************************
 // Finance - Remove Holiday
 // *********************************
-app.post('/api/removeHoliday', (req, res) => {
+app.post('/api/removeHoliday', async (req, res) => {
   const { date } = req.body;
   console.log(`Removing holiday for: ${date}`);
   if (!date) {
@@ -427,7 +427,7 @@ app.post('/api/removeHoliday', (req, res) => {
   }
 
   const qry = "UPDATE holidays SET active = FALSE WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
-  pool.query(qry, [year], async (err, results) => {
+  await pool.query(qry, [year], (err, results) => {
     if (err) {
       const msg = 'Error removing holiday: '.concat(err);
       console.log(msg);
