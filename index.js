@@ -433,6 +433,7 @@ app.post('/api/removeHoliday', (req, res) => {
       console.log(msg);
       return res.status(400).json({ success: false, reason: msg });
     }
+    console.log(results.toString());
     return res.json({ success: true });
   });
 });
