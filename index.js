@@ -429,7 +429,10 @@ app.post('/api/removeHoliday', async (req, res) => {
   const qry = "UPDATE holidays SET active = ? WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
   const values = [active, date];
   try {
-    const { result, fields } = await pool_main.execute(qry, values);
+    const { result, fields } = await pool_main.execute({
+      qry,
+      values
+    });
     console.log(result);
     console.log(fields);
     return res.json({ success: true });
