@@ -434,7 +434,13 @@ app.post('/api/removeHoliday', (req, res) => {
       console.log(msg);
       return res.status(400).json({ success: false, reason: msg });
     }
-    console.log(result.affectedRows);
+
+    if (result.affectedRows === 0) {
+      const msg = "Holiday removed failed";
+      console.log(msg);
+      return res.json({ success: false, reason: msg });
+    }
+    console.log('Holiday removed successfully');
     return res.json({ success: true });
   });
 });
