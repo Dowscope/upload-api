@@ -421,7 +421,7 @@ app.get('/api/getHolidays', (req, res) => {
 // *********************************
 app.post('/api/removeHoliday', (req, res) => {
   const { date, active } = req.body;
-  console.log(`Removing holiday for: ${date}`);
+  console.log(`Removing ${active} holiday for: ${date}`);
   if (!date) {
     return res.status(400).json({ success: false, reason: 'Date is required' });
   }
