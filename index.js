@@ -428,13 +428,13 @@ app.post('/api/removeHoliday', (req, res) => {
 
   const qry = "UPDATE holidays SET active = ? WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
   
-  pool_main.query(qry, [date, active], (err, results) => {
+  pool_main.query(qry, [date, active], (err, result) => {
     if (err) {
       const msg = 'Error removing holiday: '.concat(err);
       console.log(msg);
       return res.status(400).json({ success: false, reason: msg });
     }
-    console.log(results.affectedRows);
+    console.log(result.affectedRows);
     return res.json({ success: true });
   });
 });
