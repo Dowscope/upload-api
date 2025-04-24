@@ -419,7 +419,7 @@ app.get('/api/getHolidays', (req, res) => {
 // *********************************
 // Finance - Remove Holiday
 // *********************************
-app.post('/api/removeHoliday', (req, res) => {
+app.post('/api/removeHoliday', async (req, res) => {
   const { date, active } = req.body;
   console.log(`Removing ${active} holiday for: ${date}`);
   if (!date) {
@@ -427,15 +427,12 @@ app.post('/api/removeHoliday', (req, res) => {
   }
 
   const qry = "UPDATE holidays SET active = ? WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
-  pool_main.query(qry, [date, active], (err, results) => {
-    if (err) {
-      const msg = 'Error removing holiday: '.concat(err);
-      console.log(msg);
-      return res.status(400).json({ success: false, reason: msg });
-    }
-    console.log(results.toString());
-    return res.json({ success: true });
-  });
+
+  const { result, fields } = await pool_main.execute(strictEqual, values);
+  
+  console.log(result);
+  console.log(fields);
+  return res.json({ success: true });
 });
 
 // *********************************
