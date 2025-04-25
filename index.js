@@ -455,12 +455,17 @@ app.post('/api/addHoliday', (req, res) => {
     return res.status(400).json({ success: false, reason: 'Name and Date is required' });
   }
 
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!date || !name || typeof name !== 'string' || !dateRegex.test(date)) {
+    return res.status(400).json({ success: false, reason: 'Invalid name or date format (expected YYYY-MM-DD)' });
+  }
+  const cleanName = name.trim();
   const qryAdd = "INSERT INTO holidays (date, name, active) VALUES (STR_TO_DATE(?, '%Y-%m-%d'), ?, 1)";
   
-  pool_main.query(qry, [date, name], (err, result) => {
+  pool_main.query(qryAdd, [date, cleanName], (err, result) => {
     if (err) {
-      const msg = 'Error removing holiday: '.concat(err);
-      console.log(msg);
+      const msg = 'Error removing holiday: ';
+      console.log(msg.concat(err));
       return res.status(400).json({ success: false, reason: msg });
     }
 
