@@ -446,6 +446,35 @@ app.post('/api/removeHoliday', (req, res) => {
 });
 
 // *********************************
+// Finance - Add Holiday
+// *********************************
+app.post('/api/addHoliday', (req, res) => {
+  const { date, name } = req.body;
+  console.log(`Adding ${name} holiday for: ${date}`);
+  if (!date || !name) {
+    return res.status(400).json({ success: false, reason: 'Name and Date is required' });
+  }
+
+  const qryAdd = "INSERT INTO holidays (date, name, active) VALUES (STR_TO_DATE(?, '%Y-%m-%d'), ?, 1)";
+  
+  pool_main.query(qry, [date, name], (err, result) => {
+    if (err) {
+      const msg = 'Error removing holiday: '.concat(err);
+      console.log(msg);
+      return res.status(400).json({ success: false, reason: msg });
+    }
+
+    if (result.affectedRows === 0) {
+      const msg = "Holiday add failed";
+      console.log(msg);
+      return res.json({ success: false, reason: msg });
+    }
+    console.log('Holiday added successfully');
+    return res.json({ success: true });
+  });
+});
+
+// *********************************
 // Finance - Update Holidays
 // *********************************
 app.get('/api/updateHolidays', async (req, res) => {
