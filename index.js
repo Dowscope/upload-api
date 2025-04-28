@@ -934,7 +934,7 @@ app.get('/api/forum/getCategories', async function(req, res) {
   console.log('Gatting Categories');
     
   const query = 'SELECT fc.cat_id, fc.name, fc.description, fc.parent_id, (SELECT COUNT(*) FROM forum_topics ft WHERE ft.cat_id = fc.cat_id) AS "topic_count" FROM forum_category fc WHERE parent_id = ?';
-  const qryLastPost = 'SELECT final.cat_id, final.title, final.user, MAX(final.date_posted) FROM ( SELECT fc.cat_id, ft.title, CONCAT(u.first_name, \' \', u.last_name) AS "user", fp.date_posted FROM forum_category fc JOIN forum_topics ft ON ft.cat_id = fc.cat_id JOIN forum_posts fp ON fp.topic_id = ft.topic_id JOIN USERS u ON u.userid = fp.user_id ) final where final.cat_id = ? GROUP BY final.cat_id, final.title, final.user';
+  const qryLastPost = `SELECT final.cat_id, final.title, final.user, MAX(final.date_posted) FROM ( SELECT fc.cat_id, ft.title, CONCAT(u.first_name, ' ', u.last_name) AS "user", fp.date_posted FROM forum_category fc JOIN forum_topics ft ON ft.cat_id = fc.cat_id JOIN forum_posts fp ON fp.topic_id = ft.topic_id JOIN USERS u ON u.userid = fp.user_id ) final where final.cat_id = ? GROUP BY final.cat_id, final.title, final.user`;
   
   db.query(query, [cat], async (err, results) => {
     if (err) {
@@ -943,9 +943,9 @@ app.get('/api/forum/getCategories', async function(req, res) {
     }
 
     if (results.length > 0) {
-      db.query(qryLastPost, [cat], (err, lastPostResults) => {
+      db.query(qryLastPost, [cat], (errlp, lastPostResults) => {
         if (err) {
-          console.error("Query Error: ", err);
+          console.error("Query Error: ", errlp);
           return res.status(500).json({ error: 'Query last post Failed' });
         }
         return res.json({success: true, categories: results, lastpost: lastPostResults});
