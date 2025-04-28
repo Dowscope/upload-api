@@ -933,19 +933,23 @@ app.get('/api/forum/getCategories', async function(req, res) {
 
   console.log('Gatting Categories');
     
-  let query = 'SELECT fc.cat_id, fc.name, fc.description, fc.parent_id, (SELECT COUNT(*) FROM forum_topics ft WHERE ft.cat_id = fc.cat_id) AS "topic_count" FROM forum_category fc';
-  if (cat > 0) {
-    query += ' WHERE parent_id = ?';
-  }
-
-  db.query(query, async (err, results) => {
+  const query = 'SELECT fc.cat_id, fc.name, fc.description, fc.parent_id, (SELECT COUNT(*) FROM forum_topics ft WHERE ft.cat_id = fc.cat_id) AS "topic_count" FROM forum_category fc WHERE parent_id = ?';
+  const qryLastPost = 'SELECT final.cat_id, final.title, final.user, MAX(final.date_posted) FROM ( SELECT fc.cat_id, ft.title, CONCAT(u.first_name, \' \', u.last_name) AS "user", fp.date_posted FROM forum_category fc JOIN forum_topics ft ON ft.cat_id = fc.cat_id JOIN forum_posts fp ON fp.topic_id = ft.topic_id JOIN USERS u ON u.userid = fp.user_id ) final where final.cat_id = ? GROUP BY final.cat_id, final.title, final.user';
+  
+  db.query(query, [cat], async (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
       return res.status(500).json({ error: 'Query Failed' });
     }
 
     if (results.length > 0) {
-      return res.json({success: true, categories: results});
+      db.query(qryLastPost, [cat], (err, lastPostResults) => {
+        if (err) {
+          console.error("Query Error: ", err);
+          return res.status(500).json({ error: 'Query last post Failed' });
+        }
+        return res.json({success: true, categories: results, lastpost: lastPostResults});
+      });
     } else {
       return res.status(401).json({ error: 'No Categories Found' });
     }
