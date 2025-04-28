@@ -624,7 +624,7 @@ app.post('/sessioncheck', function (req, res) {
 // Updated for RTS and Main Servers
 // *********************************
 app.post('/checkUser', async function(req, res) {
-  const { email, password, cat } = req.body;
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
@@ -634,14 +634,8 @@ app.post('/checkUser', async function(req, res) {
   }
 
   db = pool_main;
-  if (cat === 'rts') {
-    db = pool;
-  } else if (cat === 'main') {
-    db = pool_main;
-  } else {
-    return res.status(400).json({ error: 'Invalid category' });
-  }
-  console.log(`Checking User: ${email} | Category: ${cat}`);
+
+  console.log('Checking User: ', email);
 
   // Validate email format
   if (!isValidEmail(email)) {
