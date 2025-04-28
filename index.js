@@ -924,7 +924,39 @@ app.post('/remove', (req, res) => {
 // FORUM - Get Categories
 // *********************************
 app.get('/api/forum/getCategories', async function(req, res) {
-  
+  db = pool_main;
+
+  let { cat } = req.query;
+  if (cat === null || cat === undefined) {
+    cat = 0;
+  }
+
+  console.log('Gatting Categories');
+    
+  let query = 'SELECT fc.cat_id, fc.name, fc.description, fc.parent_id, (SELECT COUNT(*) FROM forum_topics ft WHERE ft.cat_id = fc.cat_id) AS "topic_count" FROM forum_category fc';
+  if (cat > 0) {
+    query += ' WHERE parent_id = ?';
+  }
+
+  db.query(query, async (err, results) => {
+    if (err) {
+      console.error("Query Error: ", err);
+      return res.status(500).json({ error: 'Query Failed' });
+    }
+
+    if (results.length > 0) {
+      return res.json({success: true, categories: results});
+    } else {
+      return res.status(401).json({ error: 'No Categories Found' });
+    }
+  });
+});
+
+// *********************************
+// FORUM - Get Topics
+// *********************************
+app.get('/api/forum/getTopics', async function(req, res) {
+  const { year } = req.query;
   db = pool_main;
 
   console.log('Gatting All Categories: ');
