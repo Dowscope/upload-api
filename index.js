@@ -629,10 +629,7 @@ app.post('/checkUser', async function(req, res) {
   if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
-  if (!cat) {
-    return res.status(400).json({ error: 'Category is required' });
-  }
-
+  
   db = pool_main;
 
   console.log('Checking User: ', email);
