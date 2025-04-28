@@ -923,7 +923,7 @@ app.post('/remove', (req, res) => {
 // *********************************
 // FORUM - Get Categories
 // *********************************
-app.post('/api/forum/getCategories', async function(req, res) {
+app.get('/api/forum/getCategories', async function(req, res) {
   
   db = pool_main;
 
