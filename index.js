@@ -629,7 +629,7 @@ app.post('/checkUser', async function(req, res) {
   if (!email || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
-  
+
   db = pool_main;
 
   console.log('Checking User: ', email);
@@ -917,6 +917,32 @@ app.post('/remove', (req, res) => {
       }
     });
     res.send(filename + " Removed");
+  });
+});
+
+// *********************************
+// FORUM - Get Categories
+// *********************************
+app.post('/api/forum/getCategories', async function(req, res) {
+  
+  db = pool_main;
+
+  console.log('Gatting All Categories: ');
+
+  const query = 'SELECT * FROM forum_category';
+
+
+  db.query(query, async (err, results) => {
+    if (err) {
+      console.error("Query Error: ", err);
+      return res.status(500).json({ error: 'Query Failed' });
+    }
+
+    if (results.length > 0) {
+      return res.json({success: true, categories: results});
+    } else {
+      return res.status(401).json({ error: 'No Categories Found' });
+    }
   });
 });
 
