@@ -926,15 +926,23 @@ app.post('/remove', (req, res) => {
 app.get('/api/forum/getCategories', async function(req, res) {
   db = pool_main;
 
-  let { cat } = req.query;
+  let { isCategory, catId } = req.params;
+  cat = catId
   if (cat === null || cat === undefined) {
     cat = 0;
   }
+  if (isCategory === null || isCategory === undefined) {
+    isCategory = 0;
+  }
 
-  console.log('Gatting Categories');
+  console.log('Getting Categories');
     
-  const query = 'SELECT fc.cat_id, fc.name, fc.description, fc.parent_id, (SELECT COUNT(*) FROM forum_topics ft WHERE ft.cat_id = fc.cat_id) AS "topic_count" FROM forum_category fc WHERE parent_id = ?';
-  const qryLastPost = `SELECT final.cat_id, final.title, final.user, MAX(final.date_posted) AS "date" FROM ( SELECT fc.cat_id, ft.title, CONCAT(u.first_name, ' ', u.last_name) AS "user", fp.date_posted FROM forum_category fc JOIN forum_topics ft ON ft.cat_id = fc.cat_id JOIN forum_posts fp ON fp.topic_id = ft.topic_id JOIN USERS u ON u.userid = fp.user_id ) final GROUP BY final.cat_id, final.title, final.user`;
+  let query = 'SELECT fc.cat_id, fc.name, fc.description, fc.parent_id, (SELECT COUNT(*) FROM forum_topics ft WHERE ft.cat_id = fc.cat_id) AS "topic_count" FROM forum_category fc WHERE fc.parent_id = ?';
+  let qryLastPost = `SELECT final.cat_id, final.title, final.user, MAX(final.date_posted) AS "date" FROM ( SELECT fc.cat_id, ft.title, CONCAT(u.first_name, ' ', u.last_name) AS "user", fp.date_posted FROM forum_category fc JOIN forum_topics ft ON ft.cat_id = fc.cat_id JOIN forum_posts fp ON fp.topic_id = ft.topic_id JOIN USERS u ON u.userid = fp.user_id ) final GROUP BY final.cat_id, final.title, final.user`;
+  if (!isCategory) {
+    query = 'SELECT ft.topic_id, ft.title, ft.description, ft.cat_id, (SELECT COUNT(*) FROM forum_posts fp WHERE fp.topic_id = ft.topic_id) AS "post_count" FROM forum_topics ft WHERE ft.cat_id = ?';
+    qryLastPost = `SELECT final.topic_id, final.title, final.user, MAX(final.date_posted) AS "date" FROM ( SELECT ft.cat_id, ft.topic_id, ft.title, CONCAT(u.first_name, ' ', u.last_name) AS "user", fp.date_posted FROM forum_topics ft JOIN forum_posts fp ON fp.topic_id = ft.topic_id JOIN USERS u ON u.userid = fp.user_id ) final WHERE final.cat_id = ? GROUP BY final.topic_id, final.title, final.user`;
+  }
   
   db.query(query, [cat], async (err, results) => {
     if (err) {
@@ -950,32 +958,6 @@ app.get('/api/forum/getCategories', async function(req, res) {
         }
         return res.json({success: true, categories: results, lastpost: lastPostResults});
       });
-    } else {
-      return res.status(401).json({ error: 'No Categories Found' });
-    }
-  });
-});
-
-// *********************************
-// FORUM - Get Topics
-// *********************************
-app.get('/api/forum/getTopics', async function(req, res) {
-  const { year } = req.query;
-  db = pool_main;
-
-  console.log('Gatting All Categories: ');
-
-  const query = 'SELECT * FROM forum_category';
-
-
-  db.query(query, async (err, results) => {
-    if (err) {
-      console.error("Query Error: ", err);
-      return res.status(500).json({ error: 'Query Failed' });
-    }
-
-    if (results.length > 0) {
-      return res.json({success: true, categories: results});
     } else {
       return res.status(401).json({ error: 'No Categories Found' });
     }
