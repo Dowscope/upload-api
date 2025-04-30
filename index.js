@@ -925,10 +925,8 @@ app.post('/remove', (req, res) => {
 // *********************************
 app.get('/api/forum/getCategories', async function(req, res) {
   db = pool_main;
-  console.log(`params: ${req.params.dictionary}`);
-  console.log(`query: ${req.query.dictionary}`);
-  console.log(`body: ${req.body.dictionary}`);
-  let { isCategory, catId } = req.params;
+
+  let { isCategory, catId } = req.query;
   cat = catId
   if (cat === null || cat === undefined) {
     cat = 0;
