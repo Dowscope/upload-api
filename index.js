@@ -939,7 +939,7 @@ app.get('/api/forum/getCategories', async function(req, res) {
   let qryLastPost = `SELECT final.cat_id, final.title, final.user, MAX(final.date_posted) AS "date" FROM ( SELECT fc.cat_id, ft.title, CONCAT(u.first_name, ' ', u.last_name) AS "user", fp.date_posted FROM forum_category fc JOIN forum_topics ft ON ft.cat_id = fc.cat_id JOIN forum_posts fp ON fp.topic_id = ft.topic_id JOIN USERS u ON u.userid = fp.user_id ) final GROUP BY final.cat_id, final.title, final.user`;
   if (!isCategory) {
     query = 'SELECT ft.topic_id, ft.title, ft.description, ft.cat_id, (SELECT COUNT(*) FROM forum_posts fp WHERE fp.topic_id = ft.topic_id) AS "post_count" FROM forum_topics ft WHERE ft.cat_id = ?';
-    qryLastPost = `SELECT final.cat_id, final.topic_id, final.title, final.user, MAX(final.date_posted) AS "date" FROM ( SELECT ft.cat_id, ft.topic_id, ft.title, CONCAT(u.first_name, ' ', u.last_name) AS "user", fp.date_posted FROM forum_topics ft JOIN forum_posts fp ON fp.topic_id = ft.topic_id JOIN USERS u ON u.userid = fp.user_id ) final WHERE final.cat_id = ? GROUP BY final.cat_id, final.topic_id, final.title, final.user`;
+    qryLastPost = `SELECT final.topic_id, final.title, final.user, MAX(final.date_posted) AS "date", final.cat_id FROM ( SELECT ft.cat_id, ft.topic_id, ft.title, CONCAT(u.first_name, ' ', u.last_name) AS "user", fp.date_posted FROM forum_topics ft JOIN forum_posts fp ON fp.topic_id = ft.topic_id JOIN USERS u ON u.userid = fp.user_id ) final GROUP BY final.topic_id, final.title, final.user,final.cat_id`;
   }
   db.query(query, [cat], async (err, results) => {
     if (err) {
