@@ -954,7 +954,7 @@ app.get('/api/forum/getCategories', async function(req, res) {
           console.error("Query Error: ", errlp);
           return res.status(500).json({ error: 'Query last post Failed' });
         }
-        return res.json({success: true, categories: results, lastpost: lastPostResults});
+        return res.json({success: true, objects: results, lastpost: lastPostResults});
       });
     } else {
       return res.status(401).json({ error: 'No Categories Found' });
