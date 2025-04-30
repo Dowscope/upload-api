@@ -932,7 +932,7 @@ app.get('/api/forum/getCategories', async function(req, res) {
     cat = 0;
   }
   if (isCategory === null || isCategory === undefined) {
-    isCategory = 0;
+    res.status(400).json({ error: `isCategory is required: ${isCategory}` });
   }
 
   console.log('Getting Categories');
