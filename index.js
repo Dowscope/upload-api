@@ -961,6 +961,34 @@ app.get('/api/forum/getCategories', async function(req, res) {
   });
 });
 
+// *********************************
+// FORUM - Get Topics
+// *********************************
+app.get('/api/forum/getTopics', async function(req, res) {
+  db = pool_main;
+
+  const { topic_Id } = req.query;
+  
+  if (catopic_Idt === null || topic_Id === undefined) {
+    return res.status(400).json({ error: `topic is required: ${isCategory}` });
+  }
+  
+  const query = 'SELECT * FROM forum_posts WHERE topic_id = ?';
+  
+  db.query(query, [cat], async (err, results) => {
+    if (err) {
+      console.error("Query Error: ", err);
+      return res.status(500).json({ error: 'Query Failed' });
+    }
+
+    if (results.length > 0) {
+      return res.json({success: true, objects: results});
+    } else {
+      return res.status(401).json({ error: 'No Categories Found' });
+    }
+  });
+});
+
 app.use(function(err, req, res, next) {
   if (err.code === "LIMIT_FILE_TYPES"){
     res.status(422).json({ error: "Only game files are allowed" })
