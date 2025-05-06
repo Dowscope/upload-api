@@ -968,9 +968,10 @@ app.get('/api/forum/getTopics', async function(req, res) {
   db = pool_main;
 
   const { topicId } = req.query;
-  
+  console.log(`Getting Topics for: ${topicId}`);
+
   if (topicId === null || topicId === undefined) {
-    return res.status(400).json({ error: `topic is required: ${isCategory}` });
+    return res.status(400).json({ success: false, error: `topic is required` });
   }
   
   const query = 'SELECT * FROM forum_posts WHERE topic_id = ?';
@@ -978,13 +979,13 @@ app.get('/api/forum/getTopics', async function(req, res) {
   db.query(query, [topicId], async (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
-      return res.status(500).json({ error: 'Query Failed' });
+      return res.status(500).json({ success: false, error: 'Query Failed' });
     }
 
     if (results.length > 0) {
       return res.json({success: true, objects: results});
     } else {
-      return res.status(401).json({ error: 'No Categories Found' });
+      return res.status(401).json({ success: false, error: 'No Categories Found' });
     }
   });
 });
