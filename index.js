@@ -969,7 +969,7 @@ app.get('/api/forum/getTopics', async function(req, res) {
 
   const { topic_Id } = req.query;
   
-  if (catopic_Idt === null || topic_Id === undefined) {
+  if (topic_id === null || topic_Id === undefined) {
     return res.status(400).json({ error: `topic is required: ${isCategory}` });
   }
   
