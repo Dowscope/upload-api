@@ -974,7 +974,7 @@ app.get('/api/forum/getTopics', async function(req, res) {
     return res.status(400).json({ success: false, error: `topic is required` });
   }
   
-  const query = 'SELECT * FROM forum_posts WHERE topic_id = ?';
+  const query = 'SELECT * FROM forum_posts fp JOIN USERS u ON u.userid = fp.user_id WHERE topic_id = ?';
   
   db.query(query, [topicId], async (err, results) => {
     if (err) {
