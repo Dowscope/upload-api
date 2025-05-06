@@ -967,15 +967,15 @@ app.get('/api/forum/getCategories', async function(req, res) {
 app.get('/api/forum/getTopics', async function(req, res) {
   db = pool_main;
 
-  const { topic_Id } = req.query;
+  const { topicId } = req.query;
   
-  if (topic_id === null || topic_Id === undefined) {
+  if (topicId === null || topicId === undefined) {
     return res.status(400).json({ error: `topic is required: ${isCategory}` });
   }
   
   const query = 'SELECT * FROM forum_posts WHERE topic_id = ?';
   
-  db.query(query, [cat], async (err, results) => {
+  db.query(query, [topicId], async (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
       return res.status(500).json({ error: 'Query Failed' });
