@@ -40,11 +40,12 @@ async function verifyPassword(plainPassword, hashedPassword) {
   const match = await bcrypt.compare(plainPassword, hashedPassword);
   console.log("Verify: ",match);
   if (match) {
-      console.log("Password is correct!");
-      return true;
+    console.log("Password is correct!");
+    return true;
   } else {
-      console.log("Password is incorrect!");
-      return false;
+    console.log("Password is incorrect!");
+    console.log(hashPassword(plainPassword))
+    return false;
   }
 }
 
