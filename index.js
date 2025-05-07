@@ -44,6 +44,7 @@ async function verifyPassword(plainPassword, hashedPassword) {
     return true;
   } else {
     console.log("Password is incorrect!");
+    
     console.log(hashPassword(plainPassword))
     return false;
   }
