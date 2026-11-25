@@ -4,6 +4,7 @@ const registerHolidayRoutes = require('./holidays');
 const registerUserRoutes = require('./users');
 const registerFileRoutes = require('./files');
 const registerForumRoutes = require('./forum');
+const registerSiteDeployRoute = require('./siteDeploy');
 
 function registerRoutes(app, dependencies) {
   app.use(registerUploadsAndMusic(dependencies));
@@ -12,6 +13,7 @@ function registerRoutes(app, dependencies) {
   app.use(registerUserRoutes(dependencies));
   app.use(registerFileRoutes(dependencies));
   app.use(registerForumRoutes(dependencies));
+  app.use(registerSiteDeployRoute(dependencies));
 }
 
 module.exports = registerRoutes;

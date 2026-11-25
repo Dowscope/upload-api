@@ -37,6 +37,13 @@ const config = {
   api: {
     port: envNumber('API_PORT', 55000)
   },
+  siteDeploy: {
+    repository: process.env.SITE_REPOSITORY_URL || '',
+    branch: process.env.SITE_REPOSITORY_BRANCH || 'main',
+    secret: process.env.SITE_WEBHOOK_SECRET || '',
+    webRoot: envPath('SITE_WEB_ROOT', '/var/www/dowscopemedia.ca/public_html'),
+    buildOutput: process.env.SITE_BUILD_OUTPUT || 'dist'
+  },
   cors: {
     origins: envList('CORS_ORIGINS', [
       'http://localhost:55000',

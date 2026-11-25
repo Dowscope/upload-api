@@ -24,7 +24,11 @@ function createApp() {
     methods: config.cors.methods,
     allowedHeaders: config.cors.allowedHeaders
   }));
-  app.use(express.json());
+  app.use(express.json({
+    verify(req, res, body) {
+      req.rawBody = Buffer.from(body);
+    }
+  }));
 
   registerRoutes(app, {
     config,
