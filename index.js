@@ -1,37 +1,76 @@
 const express  = require('express');
 const multer = require('multer');
-const bp = require('body-parser');
 const fs = require('fs');
-const path = require('path');
 const cors = require('cors');
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const axios = require('axios');
 const FormData = require('form-data');
+const path = require('path');
 
 const app = express();
+
+// *********************************
+// Configuration
+// *********************************
+const CONFIG = {
+  database: {
+    host: '192.168.1.14',
+    user: 'dbuser',
+    password: 'Qwerty2017',
+    rtsDatabase: 'RTS',
+    mainDatabase: 'MAINSITE'
+  },
+
+  servers: {
+    music: '192.168.1.101',
+    rts: '192.168.1.113'
+  },
+
+  security: {
+    saltRounds: 10,
+    sessionLengthDays: 7
+  },
+
+  api: {
+    port: 55000
+  },
+
+  cors: {
+    origins: [
+      'http://localhost:55000',
+      'http://localhost:8080',
+      'http://dowscopemedia.ca'
+    ]
+  },
+
+  paths: {
+    uploads: path.join(__dirname, 'uploads'),
+    fileList: path.join(__dirname, 'fileList.json'),
+    musicRecords: '/store/Music/Records'
+  }
+};
 
 const qryValidateSession = "SELECT s.user_id FROM sessionstore s JOIN USERS u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE() AND s.status = 1 AND u.email = ?";
 
 
 const pool = mysql.createPool({
-  host: '192.168.0.235',
-  user: 'dbuser',
-  password: 'Qwerty2017',
+  host: CONFIG.database.host,
+  user: CONFIG.database.user,
+  password: CONFIG.database.password,
   database: 'RTS'
 });
 
 const pool_main = mysql.createPool({
-  host: '192.168.0.235',
-  user: 'dbuser',
-  password: 'Qwerty2017',
+  host: CONFIG.database.host,
+  user: CONFIG.database.user,
+  password: CONFIG.database.password,
   database: 'MAINSITE'
 });
 
 async function hashPassword(plainPassword) {
-  const saltRounds = 10; // Number of salt rounds (higher is more secure but slower)
-  const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
+  const hashedPassword = await bcrypt.hash(plainPassword, CONFIG.security.saltRounds);
   console.log("Hashed Password:", hashedPassword);
   return hashedPassword;
 }
@@ -44,8 +83,6 @@ async function verifyPassword(plainPassword, hashedPassword) {
     return true;
   } else {
     console.log("Password is incorrect!");
-    
-    console.log(hashPassword(plainPassword))
     return false;
   }
 }
@@ -56,15 +93,16 @@ function isValidEmail(email) {
 }
 
 app.use(cors({
-  origin: ['http://localhost:55000', 'http://dowscopemedia.ca', 'http://localhost:8080'],
+  origin: CONFIG.cors.origins,
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.use(express.json());
 
 const fileFilter = function(req, file, cb){
   const allowedTypes = ["application/zip", "application/octet-stream", "text/markdown"];
   if (!allowedTypes.includes(file.mimetype)
-  || file.name.slice(-3) === 'crp') {
+  || file.originalname.slice(-3) === 'crp') {
     const error = new Error("Wrong file type");
     error.code = "LIMIT_FILE_TYPES";
     return cb(error, false);
@@ -74,52 +112,45 @@ const fileFilter = function(req, file, cb){
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads');
+    cb(null, CONFIG.files.uploadDir);
   },
   filename: function ( req, file, cb ){
     cb(null, file.originalname);
-  },
-  fileFilter
+  }
 });
 
-const upload = multer({storage: storage}).single('file');
+const upload = multer({storage: storage, fileFilter: fileFilter}).single('file');
 
 async function createEntry(filename) {
   const timestamp = new Date(Date.now());
   const estOptions = { timeZone: 'America/New_York' };
   const estTimeString = timestamp.toLocaleString('en-US', estOptions);
   console.log(estTimeString + ': ' + filename + ' File Being Uploaded');
+
   const fileEntry = {
     fileName: filename,
     uploaded: estTimeString,
     timestamp: timestamp,
     downloaded: false,
-  }
-  
+  };
+
   try {
-    var filelist = fs.readFileSync(__dirname + '/fileList.json');
-    
-    var list = JSON.parse(data);
+    let list = [];
+    if (fs.existsSync(CONFIG.files.fileList)) {
+      const filelist = fs.readFileSync(CONFIG.files.fileList);
+      list = JSON.parse(filelist);
+    }
     list.push(fileEntry);
-    const jsonStr = JSON.stringify(list);
-  
-    fs.writeFileSync(__dirname + '/fileList.json', jsonStr);
-    
-    var msg = 'File added successfully';
+    fs.writeFileSync(CONFIG.files.fileList, JSON.stringify(list, null, 2));
+
+    const msg = 'File added successfully';
     console.log(msg);
     return { success: true, reason: msg };
   } catch (error) {
-    console.log('JSON File not found... creating now');
-    const obj = [
-      fileEntry,
-    ]
-    const jsonStr = JSON.stringify(obj);
-    fs.writeFileSync(__dirname + '/fileList.json', jsonStr);
-    var msg = 'JSON File created';
+    const msg = 'Error updating file list: '.concat(error);
     console.log(msg);
-    return { success: true, reason: msg };
+    return { success: false, reason: msg };
   }
-  
 }
 
 function verifySession(session_id, email) {
@@ -137,37 +168,37 @@ function verifySession(session_id, email) {
         console.log(msg);
         return reject({success: false, reason: msg});
       }
-      
-      if (results.length > 0) {
-        const msg = 'User Validated';
-        console.log(msg);
 
-        const qryGetGroups = "SELECT group_id FROM user_groups WHERE user_id = ?";
-        pool_main.query(qryGetGroups, [results[0].user_id], (err, results) => {
-          if (err) {
-            const msg = 'Error getting user groups: '.concat(err);
-            console.log(msg);
-            return reject({success: false, reason: msg});
-          }
-          const groups = results.map(row => row.group_id);
-          return resolve({success: true, reason: msg, groups: groups});
-        });
-        return resolve({success: false, reason: "User does not have permission"});
+      if (results.length === 0) {
+        const msg = 'Session ID or email Invalid';
+        console.log(msg);
+        return resolve({success: false, reason: msg});
       }
-      const msg = 'Session ID or email Invalid';
+
+      const msg = 'User Validated';
       console.log(msg);
-      return resolve({success: false, reason: msg});
+
+      const qryGetGroups = "SELECT group_id FROM user_groups WHERE user_id = ?";
+      pool_main.query(qryGetGroups, [results[0].user_id], (err, groupResults) => {
+        if (err) {
+          const msg = 'Error getting user groups: '.concat(err);
+          console.log(msg);
+          return reject({success: false, reason: msg});
+        }
+        const groups = groupResults.map(row => row.group_id);
+        return resolve({success: true, reason: msg, groups: groups});
+      });
     });
   });
 }
 
-app.post('/uploads', upload, (req, res) => {
-  const result = createEntry(req.file.originalname);
+app.post('/uploads', upload, async (req, res) => {
+  const result = await createEntry(req.file.originalname);
   res.json({ success: result.success, reason: result.reason, file: req.file});
 });
 
 app.get('/list', function(req, res) {
-  fs.readFile(__dirname + '/fileList.json', (readErr, data) => {
+  fs.readFile(CONFIG.files.fileList, (readErr, data) => {
     if (readErr) {
       console.log("LIST ERROR: " + readErr);
       res.send(readErr);
@@ -181,10 +212,9 @@ app.get('/list', function(req, res) {
   })
 });
 
-app.use(bp.json());
 
 app.get('/api/list_music', async (req, res) => {
-  const url = 'http://192.168.0.101/list';
+  const url = `http://${CONFIG.servers.music}/list`;
   const rs = await axios.get(url);
   // console.log(rs);
   res.json(rs.data);
@@ -193,7 +223,7 @@ app.get('/api/list_music', async (req, res) => {
 app.get('/api/getMusicFile', async (req, res) => {
   const { filename } = req.query;
   console.log(`Getting Music File: ${filename}`);
-  const url = 'http://192.168.0.101/file';
+  const url = `http://${CONFIG.servers.music}/file`;
   const rs = await axios.get(url, {
     params: {
       filename: filename,
@@ -221,11 +251,11 @@ app.post('/rtsstatus', (req, res) => {
       console.log('rts_ststus error: '.concat(err));
       return res.status(400).json({error: "Error getting rts status"});
     }
-    
+
     if (results.length > 0) {
       console.log('User requesting rts status: '.concat(results[0].user_id));
       try {
-        const url = 'http://192.168.0.113/status';
+        const url = `http://${CONFIG.servers.rts}/status`;
         const rs = await axios.get(url);
         console.log(rs.data);
         res.json({status: rs.data.status});
@@ -252,11 +282,11 @@ app.post('/rtsreboot', (req, res) => {
       console.log('rts_ststus error: '.concat(err));
       return res.status(400).json({error: "Error getting rts status"});
     }
-    
+
     if (results.length > 0) {
       console.log('User requesting rts reboot: '.concat(results[0].user_id));
       try {
-        const url = 'http://192.168.0.113/reboot';
+        const url = `http://${CONFIG.servers.rts}/reboot`;
         const rs = await axios.post(url);
         console.log(rs);
         res.json({status: rs.data.status});
@@ -292,13 +322,13 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
     console.log(results);
     if (results.length > 0) {
       console.log('User requesting rts upload ruleset: '.concat(results[0].user_id));
-  
+
       const formdata = new FormData();
-      formdata.append('file', fs.createReadStream(__dirname + '/uploads/' + req.file.originalname), req.file.originalname);
-  
+      formdata.append('file', fs.createReadStream(CONFIG.files.uploadDir + '/' + req.file.originalname), req.file.originalname);
+
       var resdata = '';
       try {
-        const url = 'http://192.168.0.113/upload_ruleset';
+        const url = `http://${CONFIG.servers.rts}/upload_ruleset`;
         const rs = await axios.post(url, formdata, {
             headers: {
                 ...formdata.getHeaders()
@@ -309,9 +339,9 @@ app.post('/rtsuploadruleset', upload, (req, res) => {
         resdata = error;
         res.status(500).json({ error: `Failed to fetch data ${error}` });
       }
-  
-      const result = createEntry(req.file.originalname);
-      
+
+      const result = await createEntry(req.file.originalname);
+
       console.log('Upload Result: ', result);
       res.json({ success: result.success, reason: result.reason, file: req.file, resdata: resdata });
     }
@@ -335,7 +365,7 @@ app.post('/api/rtsdownloadruleset', async (req, res) => {
   }
 
   try {
-    const url = 'http://192.168.0.113/ruleset/'.concat(filename);
+    const url = `http://${CONFIG.servers.rts}/ruleset/${filename}`;
     const rs = await axios.get(url);
     return res.json({ success: true, filedata: rs.data.file });
   } catch (error) {
@@ -360,7 +390,7 @@ app.post('/api/rtsgetlogfile', async (req, res) => {
   }
 
   try {
-    const url = 'http://192.168.0.113/logfile/'.concat(filename);
+    const url = `http://${CONFIG.servers.rts}/logfile/${filename}`;
     const rs = await axios.get(url);
     return res.json({ success: true, filedata: rs.data });
   } catch (error) {
@@ -374,10 +404,10 @@ app.post('/api/rtsgetlogfile', async (req, res) => {
 app.post('/api/rtsgetrulesets', async (req, res) => {
   const {session_id, email } = req.body;
   console.log(`${email} | Getting Rulesets`);
-  
+
   var result = await verifySession(session_id, email);
   console.log('Validation Results: '.concat(result.success));
-  
+
   if (result == undefined){
     return res.json({ success: false, reason: "No Results" })
   }else if (!result.success){
@@ -385,7 +415,7 @@ app.post('/api/rtsgetrulesets', async (req, res) => {
   }
 
   try {
-    const url = 'http://192.168.0.113/rulesets';
+    const url = `http://${CONFIG.servers.rts}/rulesets`;
     const rs = await axios.get(url);
     return res.json({ success: true, filedata: rs.data });
   } catch (error) {
@@ -429,7 +459,7 @@ app.post('/api/removeHoliday', (req, res) => {
   }
 
   const qry = "UPDATE holidays SET active = ? WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
-  
+
   pool_main.query(qry, [active, date], (err, result) => {
     if (err) {
       const msg = 'Error removing holiday: '.concat(err);
@@ -463,7 +493,7 @@ app.post('/api/addHoliday', (req, res) => {
   }
   const cleanName = name.trim();
   const qryAdd = "INSERT INTO holidays (date, name, active) VALUES (STR_TO_DATE(?, '%Y-%m-%d'), ?, 1)";
-  
+
   pool_main.query(qryAdd, [date, cleanName], (err, result) => {
     if (err) {
       const msg = 'Error removing holiday: ';
@@ -501,7 +531,7 @@ app.get('/api/updateHolidays', async (req, res) => {
       const qryCheck = "SELECT * FROM holidays WHERE date = STR_TO_DATE(?, '%Y-%m-%d')";
       const qryAdd = "INSERT INTO holidays (date, name, active) VALUES (STR_TO_DATE(?, '%Y-%m-%d'), ?, 1)";
 
-      for (holiday of ontarioHolidays) {
+      for (const holiday of ontarioHolidays) {
         const date = holiday.date;
         const name = holiday.localName;
         pool_main.query(qryCheck, [date], async (err, results) => {
@@ -563,7 +593,7 @@ app.post('/adduser', (req, res) => {
       console.log('Error getting session id: '.concat(err));
       return res.status(400).json({success: false, reason: `Error getting session id: ${err}`});
     }
-    
+
     console.log(results);
     if (results.length > 0) {
       console.log('User adding new user: '.concat(results[0].user_id));
@@ -597,7 +627,7 @@ app.post('/sessioncheck', function (req, res) {
     return res.status(400).json({ valid: false, error: 'Category is required' });
   }
 
-  db = pool_main;
+  let db = pool_main;
   if (cat === 'rts') {
     db = pool;
   } else if (cat === 'main') {
@@ -632,7 +662,7 @@ app.post('/checkUser', async function(req, res) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
-  db = pool_main;
+  let db = pool_main;
 
   console.log('Checking User: ', email);
 
@@ -663,7 +693,7 @@ app.post('/checkUser', async function(req, res) {
           const activeSession = "SELECT session_id, session, expire_date FROM sessionstore WHERE user_id = ? AND status = 1 AND expire_date > CURDATE()";
           db.query(activeSession, [userId], (activeErr, activeResults) => {
             if (activeErr) {
-              console.error("Active Session Error:", sessionErr);
+              console.error("Active Session Error:", activeErr);
               return res.status(500).json({ error: "Failed to get active session" });
             }
             activeResults.forEach(result => {
@@ -679,14 +709,14 @@ app.post('/checkUser', async function(req, res) {
           });
 
           const insertSessionQuery = "INSERT INTO sessionstore (user_id, session, expire_date, status) VALUES (?, ?, ?, ?)";
-          
+
           db.query(insertSessionQuery, [userId, sessionId, futureDate, 1], (sessionErr, sessionResults) => {
               if (sessionErr) {
                   console.error("Session Insert Error:", sessionErr);
                   return res.status(500).json({ error: "Failed to create session" });
               }
           });
-          
+
           const updateLoginInfo = "UPDATE USERS SET last_login_date = CURRENT_TIMESTAMP WHERE userid = ?";
           db.query(updateLoginInfo, [userId], (updateErr, updateResults) => {
             if (updateErr) {
@@ -745,7 +775,7 @@ app.post('/validate', async function(req, res) {
       console.log('Error getting session id: '.concat(err));
       return res.status(400).json({success: false, reason: `Error getting session id: ${err}`});
     }
-    
+
     if (results.length > 0) {
       try {
         const qry = 'SELECT password FROM USERS WHERE userid = ?';
@@ -799,7 +829,7 @@ app.post('/updateuser', async function(req, res) {
       console.log('Error getting session id: '.concat(err));
       return res.status(400).json({success: false, reason: `Error getting session id: ${err}`});
     }
-    
+
     if (results.length > 0) {
       try {
         const qry = 'SELECT password FROM USERS WHERE userid = ?';
@@ -818,7 +848,7 @@ app.post('/updateuser', async function(req, res) {
                 console.log('Error updating password: '.concat(upd_err));
                 return res.status(400).json({success: false, reason: `Error updating password: ${upd_err}`});
               }
-              const changedRows = upd_result.ResultSetHeader.changedRows;
+              const changedRows = upd_result.changedRows;
               console.log('Password Updated | ChangedRows: ', changedRows);
               if (changedRows > 0) {
                 res.json({ success: true });
@@ -836,14 +866,14 @@ app.post('/updateuser', async function(req, res) {
 });
 
 app.post('/download', (req, res) => {
-  fileName = req.body['fileName'];
-  dl_type = req.body['dl_type'];
-  filepath = ""
+  const fileName = req.body['fileName'];
+  const dl_type = req.body['dl_type'];
+  let filePath = "";
   console.log('dltype: ' + dl_type);
   if (dl_type === 'music'){
-    filePath = '/store/Music/Records/' + fileName;
+    filePath = CONFIG.files.musicRecordDir + fileName;
   } else {
-    filePath = __dirname + '/uploads/' + fileName;
+    filePath = CONFIG.files.uploadDir + '/' + fileName;
   }
   console.log('Trying to download ' + filePath);
   fs.stat(filePath, function(err, stat) {
@@ -851,9 +881,9 @@ app.post('/download', (req, res) => {
       console.log('File not found: ' + filePath);
       res.send(err);
       return;
-    } 
+    }
     if (dl_type != 'music') {
-      fs.readFile(__dirname + '/fileList.json', (readErr, data) => {
+      fs.readFile(CONFIG.files.fileList, (readErr, data) => {
         if (readErr) {
           res.send(readErr);
           return;
@@ -876,7 +906,7 @@ app.post('/download', (req, res) => {
           console.log(list);
 
           const jsonStr = JSON.stringify(list);
-          fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
+          fs.writeFile(CONFIG.files.fileList, jsonStr, (wriErr) => {
             if (wriErr) {
               console.log(wriErr);
               res.send(wriErr);
@@ -896,7 +926,7 @@ app.post('/download', (req, res) => {
 app.post('/remove', (req, res) => {
   const filename = req.body['filename'];
 
-  fs.readFile(__dirname + '/fileList.json', (readErr, data) => {
+  fs.readFile(CONFIG.files.fileList, (readErr, data) => {
     if (readErr) {
       console.log ("REMOVE: " + readErr);
       res.send(readErr);
@@ -909,7 +939,7 @@ app.post('/remove', (req, res) => {
     list = fileFound;
 
     const jsonStr = JSON.stringify(list);
-    fs.writeFile(__dirname + '/fileList.json', jsonStr, (wriErr) => {
+    fs.writeFile(CONFIG.files.fileList, jsonStr, (wriErr) => {
       if (wriErr) {
         console.log("REMOVED: " + wriErr);
         res.send(wriErr);
@@ -926,10 +956,10 @@ app.post('/remove', (req, res) => {
 // FORUM - Get Categories
 // *********************************
 app.get('/api/forum/getCategories', async function(req, res) {
-  db = pool_main;
+  let db = pool_main;
 
   let { isCategory, catId } = req.query;
-  cat = catId
+  let cat = catId
   if (cat === null || cat === undefined) {
     cat = 0;
   }
@@ -967,7 +997,7 @@ app.get('/api/forum/getCategories', async function(req, res) {
 // FORUM - Get Topics
 // *********************************
 app.get('/api/forum/getTopics', async function(req, res) {
-  db = pool_main;
+  let db = pool_main;
 
   const { topicId } = req.query;
   console.log(`Getting Topics for: ${topicId}`);
@@ -975,9 +1005,9 @@ app.get('/api/forum/getTopics', async function(req, res) {
   if (topicId === null || topicId === undefined) {
     return res.status(400).json({ success: false, error: `topic is required` });
   }
-  
+
   const query = 'SELECT fp.post_id, fp.message, fp.topic_id, fp.date_posted, fp.user_id, CONCAT(u.first_name, \' \', u.last_name) as "user" FROM forum_posts fp JOIN USERS u ON u.userid = fp.user_id WHERE topic_id = ?';
-  
+
   db.query(query, [topicId], async (err, results) => {
     if (err) {
       console.error("Query Error: ", err);
@@ -999,4 +1029,4 @@ app.use(function(err, req, res, next) {
   }
 });
 
-app.listen(55000, () => console.log("Running on port: 55000"));
+app.listen(CONFIG.api.port, () => console.log(`Running on port: ${CONFIG.api.port}`));
