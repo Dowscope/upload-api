@@ -17,11 +17,12 @@ Comma-separated CORS settings accept multiple values. Relative file paths are
 resolved from the project directory. Environment variables supplied by the
 process manager override values loaded from `.env`.
 
-SELECT 
-	ft.title,
-    CONCAT(u.first_name, ' ',u.last_name) AS "user",
-    fp.date_posted
-FROM forum_category fc 
-JOIN forum_topics ft ON ft.cat_id = fc.cat_id 
-JOIN forum_posts fp ON fp.topic_id = ft.topic_id 
-JOIN USERS u ON u.userid = fp.user_id; 
+## Code layout
+
+- `index.js` starts the server.
+- `app.js` configures Express middleware and wires dependencies together.
+- `config.js`, `db.js`, and `middleware/` handle configuration, database pools,
+  and upload handling.
+- `services/` contains reusable authentication and file catalog logic.
+- `routes/` separates uploads and music, RTS, holidays, users, files, and forum
+  endpoints.
