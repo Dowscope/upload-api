@@ -11,7 +11,8 @@ function createPools(config) {
 
   return {
     rts: mysql.createPool({ ...connection, database: config.database.rtsDatabase }),
-    main: mysql.createPool({ ...connection, database: config.database.mainDatabase })
+    main: mysql.createPool({ ...connection, database: config.database.mainDatabase }),
+    music: mysql.createPool({ ...connection, database: config.database.musicDatabase })
   };
 }
 

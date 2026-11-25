@@ -23,7 +23,8 @@ const config = {
     user: process.env.DB_USER || 'dbuser',
     password: process.env.DB_PASSWORD || '',
     rtsDatabase: process.env.DB_RTS_DATABASE || 'RTS',
-    mainDatabase: process.env.DB_MAIN_DATABASE || 'MAINSITE'
+    mainDatabase: process.env.DB_MAIN_DATABASE || 'MAINSITE',
+    musicDatabase: process.env.DB_MUSIC_DATABASE || 'music_catalog'
   },
   servers: {
     music: process.env.MUSIC_SERVER || '192.168.1.101',

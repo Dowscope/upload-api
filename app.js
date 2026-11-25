@@ -5,6 +5,7 @@ const { createPools, validateSessionQuery } = require('./db');
 const createUploadMiddleware = require('./middleware/upload');
 const createAuthServices = require('./services/auth');
 const createFileCatalog = require('./services/fileCatalog');
+const createMusicCatalog = require('./services/musicCatalog');
 const registerRoutes = require('./routes');
 
 function createApp() {
@@ -16,6 +17,7 @@ function createApp() {
     validateSessionQuery
   });
   const fileCatalog = createFileCatalog(config);
+  const musicCatalog = createMusicCatalog(pools.music);
 
   app.use(cors({
     origin: config.cors.origins,
@@ -31,7 +33,8 @@ function createApp() {
     validateSessionQuery,
     upload: createUploadMiddleware(config),
     ...auth,
-    ...fileCatalog
+    ...fileCatalog,
+    ...musicCatalog
   });
 
   app.use((err, req, res, next) => {

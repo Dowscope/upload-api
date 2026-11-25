@@ -16,6 +16,7 @@ npm start
 Comma-separated CORS settings accept multiple values. Relative file paths are
 resolved from the project directory. Environment variables supplied by the
 process manager override values loaded from `.env`.
+The music catalog database is selected with `DB_MUSIC_DATABASE`.
 
 ## Code layout
 
