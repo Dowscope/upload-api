@@ -1,7 +1,7 @@
 const express = require("express");
 const crypto = require('crypto');
 
-module.exports = function register({ pool, pool_main, validateSessionQuery, hashPassword, verifyPassword, isValidEmail }) {
+module.exports = function register({ pool, pool_main, config, validateSessionQuery, hashPassword, verifyPassword, isValidEmail }) {
   const router = express.Router();
   // *********************************
   // Add User
@@ -103,8 +103,6 @@ module.exports = function register({ pool, pool_main, validateSessionQuery, hash
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    let db = pool_main;
-
     console.log('Checking User: ', email);
 
     // Validate email format
@@ -112,83 +110,66 @@ module.exports = function register({ pool, pool_main, validateSessionQuery, hash
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    const query = 'SELECT password, userid, first_name, last_name, user_type_id FROM USERS WHERE email = ?';
+    try {
+      const db = pool_main.promise();
+      const [users] = await db.query(
+        'SELECT password, userid, first_name, last_name, user_type_id FROM USERS WHERE email = ?',
+        [email]
+      );
 
-
-    db.query(query, [email], async (err, results) => {
-      if (err) {
-        console.error("Query Error: ", err);
-        return res.status(500).json({ error: 'Query Failed' });
+      if (users.length === 0) {
+        return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      if (results.length > 0) {
-        const isSuccess = await verifyPassword(password, results[0].password);
-        if (isSuccess) {
-          try {
-            const sessionId = crypto.randomUUID();
-            const userId = results[0].userid;
-            const currentDate = new Date(); // Get the current date
-            const futureDate = new Date();
-            futureDate.setDate(currentDate.getDate() + 7);
-
-            const activeSession = "SELECT session_id, session, expire_date FROM sessionstore WHERE user_id = ? AND status = 1 AND expire_date > CURDATE()";
-            db.query(activeSession, [userId], (activeErr, activeResults) => {
-              if (activeErr) {
-                console.error("Active Session Error:", activeErr);
-                return res.status(500).json({ error: "Failed to get active session" });
-              }
-              activeResults.forEach(result => {
-                const ar_query = `UPDATE sessionstore SET status = 0 WHERE session_id = ?`;
-                db.query(ar_query, [result.session_id], (error, results) => {
-                  if (error) {
-                    console.error('Error updating status:', error);
-                  } else {
-                    console.log(`Row with ID ${result.session_id} updated`);
-                  }
-                });
-              })
-            });
-
-            const insertSessionQuery = "INSERT INTO sessionstore (user_id, session, expire_date, status) VALUES (?, ?, ?, ?)";
-
-            db.query(insertSessionQuery, [userId, sessionId, futureDate, 1], (sessionErr, sessionResults) => {
-                if (sessionErr) {
-                    console.error("Session Insert Error:", sessionErr);
-                    return res.status(500).json({ error: "Failed to create session" });
-                }
-            });
-
-            const updateLoginInfo = "UPDATE USERS SET last_login_date = CURRENT_TIMESTAMP WHERE userid = ?";
-            db.query(updateLoginInfo, [userId], (updateErr, updateResults) => {
-              if (updateErr) {
-                console.error("Error updating last login date:", updateErr);
-              }
-              console.log("Last login date updated successfully");
-            });
-
-            let groups = [];
-            const getUserGroups = "SELECT group_id FROM user_groups WHERE user_id = ?";
-            db.query(getUserGroups, [userId], (groupErr, groupResults) => {
-              if (groupErr) {
-                console.error("Error getting user groups:", groupErr);
-                return res.status(500).json({ error: "Failed to get user groups" });
-              }
-              console.log("User groups retrieved successfully");
-              groups = groupResults.map(group => group.group_id);
-            });
-
-            return res.json({ success: true, sessionId: sessionId, firstname: results[0].first_name, lastname: results[0].last_name, type: results[0].user_type_id, groups: groups });
-          } catch (error) {
-              console.error("Unexpected Error:", error);
-              return res.status(500).json({ error: "Internal Server Error" });
-          }
-        } else {
-          return res.status(401).json({ error: 'Invalid credentials first' });
-        }
-      } else {
-        return res.status(401).json({ error: 'Invalid credentials second' });
+      const user = users[0];
+      if (!(await verifyPassword(password, user.password))) {
+        return res.status(401).json({ error: 'Invalid credentials' });
       }
-    });
+
+      const sessionId = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + config.security.sessionLengthDays);
+
+      const connection = await db.getConnection();
+      try {
+        await connection.beginTransaction();
+        await connection.query(
+          'UPDATE sessionstore SET status = 0 WHERE user_id = ? AND status = 1 AND expire_date > CURDATE()',
+          [user.userid]
+        );
+        await connection.query(
+          'INSERT INTO sessionstore (user_id, session, expire_date, status) VALUES (?, ?, ?, ?)',
+          [user.userid, sessionId, expiresAt, 1]
+        );
+        await connection.commit();
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+
+      await db.query(
+        'UPDATE USERS SET last_login_date = CURRENT_TIMESTAMP WHERE userid = ?',
+        [user.userid]
+      );
+      const [groups] = await db.query(
+        'SELECT group_id FROM user_groups WHERE user_id = ?',
+        [user.userid]
+      );
+
+      return res.json({
+        success: true,
+        sessionId,
+        firstname: user.first_name,
+        lastname: user.last_name,
+        type: user.user_type_id,
+        groups: groups.map(group => group.group_id)
+      });
+    } catch (error) {
+      console.error('Sign-in failed:', error);
+      return res.status(500).json({ error: 'Sign-in failed' });
+    }
   });
 
   // *********************************
