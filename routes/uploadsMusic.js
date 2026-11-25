@@ -2,7 +2,7 @@ const express = require("express");
 const fs = require('fs');
 const axios = require('axios');
 
-module.exports = function register({ config, upload, createEntry, listMusicTracks }) {
+module.exports = function register({ config, upload, createEntry, listTracks }) {
   const router = express.Router();
   router.post('/uploads', upload, async (req, res) => {
     const result = await createEntry(req.file.originalname);
@@ -27,7 +27,7 @@ module.exports = function register({ config, upload, createEntry, listMusicTrack
 
   router.get('/api/list_music', async (req, res, next) => {
     try {
-      res.json(await listMusicTracks());
+      res.json(await listTracks());
     } catch (error) {
       next(error);
     }
