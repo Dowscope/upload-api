@@ -33,17 +33,35 @@ module.exports = function register({ config, upload, createEntry, listTracks }) 
     }
   });
 
-  router.get('/api/getMusicFile', async (req, res) => {
+  router.get('/api/getMusicFile', async (req, res, next) => {
     const { filename } = req.query;
+    if (typeof filename !== 'string' || !filename.trim()) {
+      return res.status(400).json({ error: 'filename query parameter is required' });
+    }
+
     console.log(`Getting Music File: ${filename}`);
     const url = `http://${config.servers.music}/file`;
-    const rs = await axios.get(url, {
-      params: {
-        filename: filename,
-      },
-    });
-    console.log(rs.headers);
-    res.send(rs.data);
+    try {
+      const upstream = await axios.get(url, {
+        params: { filename },
+        headers: req.headers.range ? { Range: req.headers.range } : {},
+        responseType: 'stream',
+        validateStatus: () => true
+      });
+
+      res.status(upstream.status);
+      for (const header of ['content-type', 'content-length', 'content-range', 'accept-ranges']) {
+        if (upstream.headers[header]) res.setHeader(header, upstream.headers[header]);
+      }
+
+      upstream.data.on('error', error => {
+        if (!res.headersSent) return next(error);
+        res.destroy(error);
+      });
+      upstream.data.pipe(res);
+    } catch (error) {
+      next(error);
+    }
   });
   return router;
 };
