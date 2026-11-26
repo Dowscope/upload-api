@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require('fs');
 const axios = require('axios');
+const path = require('path');
 
 module.exports = function register({ config, upload, createEntry, listTracks }) {
   const router = express.Router();
@@ -39,11 +40,17 @@ module.exports = function register({ config, upload, createEntry, listTracks }) 
       return res.status(400).json({ error: 'filename query parameter is required' });
     }
 
-    console.log(`Getting Music File: ${filename}`);
+    const libraryRoot = path.posix.resolve(config.files.musicLibraryRoot);
+    const filePath = path.posix.resolve(libraryRoot, filename);
+    if (filePath === libraryRoot || !filePath.startsWith(`${libraryRoot}/`)) {
+      return res.status(400).json({ error: 'filename must identify a file inside the music library' });
+    }
+
+    console.log(`Getting Music File: ${filePath}`);
     const url = `http://${config.servers.music}/file`;
     try {
       const upstream = await axios.get(url, {
-        params: { filename },
+        params: { filename: filePath },
         headers: req.headers.range ? { Range: req.headers.range } : {},
         responseType: 'stream',
         validateStatus: () => true

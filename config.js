@@ -56,7 +56,8 @@ const config = {
   files: {
     uploadDir: envPath('UPLOAD_DIR', 'uploads'),
     fileList: envPath('FILE_LIST_PATH', 'fileList.json'),
-    musicRecordDir: envPath('MUSIC_RECORD_DIR', '/store/Music/Records')
+    musicRecordDir: envPath('MUSIC_RECORD_DIR', '/store/Music/Records'),
+    musicLibraryRoot: process.env.MUSIC_LIBRARY_ROOT || '/storage/Music'
   }
 };
 

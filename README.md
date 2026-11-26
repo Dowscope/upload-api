@@ -17,6 +17,9 @@ Comma-separated CORS settings accept multiple values. Relative file paths are
 resolved from the project directory. Environment variables supplied by the
 process manager override values loaded from `.env`.
 The music catalog database is selected with `DB_MUSIC_DATABASE`.
+`MUSIC_LIBRARY_ROOT` is the absolute library path on the music server; the
+default is `/storage/Music`. The music playback endpoint adds this root to the
+relative filename supplied by the browser before requesting the file.
 
 ## Website deployment webhook
 
