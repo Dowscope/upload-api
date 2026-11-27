@@ -44,7 +44,8 @@ include `title`, `artist`, `album`, `year`, `trackNumber`, `genre`, `bpm`, and
 
 `POST /api/getUsers` requires `session_id` and `email` in the JSON body and
 returns basic user fields (`userid`, `email`, `first_name`, `last_name`, and
-`user_type_id`). It uses the same admin check and does not return passwords.
+`user_type_id`) plus `last_login_at`. It uses the same admin check and does not
+return passwords.
 
 The webpage can increment music usage counters with `POST /api/recordMusicPlay`
 or `POST /api/recordMusicDownload`, each with `{ "filename": "relative/path.mp3" }`.

@@ -20,7 +20,18 @@ module.exports = function register({ pool, pool_main, config, validateSessionQue
       }
 
       const [users] = await pool_main.promise().query(
-        'SELECT userid, email, first_name, last_name, user_type_id FROM USERS ORDER BY first_name, last_name, email'
+        `SELECT
+           u.userid,
+           u.email,
+           u.first_name,
+           u.last_name,
+           u.user_type_id,
+           COALESCE(
+             (SELECT MAX(lh.logged_in_at) FROM login_history lh WHERE lh.user_id = u.userid),
+             u.last_login_date
+           ) AS last_login_at
+         FROM USERS u
+         ORDER BY u.first_name, u.last_name, u.email`
       );
       return res.json({ success: true, users });
     } catch (error) {
@@ -166,6 +177,10 @@ module.exports = function register({ pool, pool_main, config, validateSessionQue
         await connection.query(
           'INSERT INTO sessionstore (user_id, session, expire_date, status) VALUES (?, ?, ?, ?)',
           [user.userid, sessionId, expiresAt, 1]
+        );
+        await connection.query(
+          'INSERT INTO login_history (user_id, logged_in_at, session_id) VALUES (?, CURRENT_TIMESTAMP, ?)',
+          [user.userid, sessionId]
         );
         await connection.commit();
       } catch (error) {
