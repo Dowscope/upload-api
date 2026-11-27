@@ -3,6 +3,7 @@ const LIST_TRACKS_QUERY = `
     tracks.relative_path AS Filename,
     CONCAT(TRIM(TRAILING '/' FROM library.root), '/', tracks.relative_path) AS Path,
     tracks.relative_path AS RelativePath,
+    tracks.modified_at AS modified_at,
     tracks.modified_at AS ModifiedAt,
     COALESCE(NULLIF(tracks.recording_date, ''), 'Unknown') AS Year,
     COALESCE(NULLIF(tracks.title, ''), 'Unknown') AS Title,
@@ -29,6 +30,7 @@ const MUSIC_FILTERS = {
 };
 
 const MUSIC_SORTS = {
+  modified: 'tracks.modified_at',
   title: 'tracks.title',
   artist: "COALESCE(NULLIF(tracks.artist, ''), NULLIF(tracks.album_artist, ''), 'Unknown')",
   genre: 'tracks.genre',
@@ -44,10 +46,10 @@ function createMusicCatalog(pool) {
     return tracks.map(({ MusicKey, ...track }) => ({ ...track, Key: MusicKey }));
   }
 
-  async function listTracksPage({ page = 1, pageSize = 100, filters = {}, sortBy = 'title', sortOrder = 'asc' } = {}) {
+  async function listTracksPage({ page = 1, pageSize = 100, filters = {}, sortBy = 'modified', sortOrder = 'asc' } = {}) {
     const safePage = Math.max(1, Math.floor(Number(page) || 1));
     const safePageSize = Math.min(200, Math.max(1, Math.floor(Number(pageSize) || 100)));
-    const safeSort = MUSIC_SORTS[sortBy] ? sortBy : 'title';
+    const safeSort = MUSIC_SORTS[sortBy] ? sortBy : 'modified';
     const direction = String(sortOrder).toLowerCase() === 'desc' ? 'DESC' : 'ASC';
     const conditions = [];
     const values = [];
