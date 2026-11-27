@@ -18,11 +18,68 @@ const LIST_TRACKS_QUERY = `
   ORDER BY tracks.title
 `;
 
+const MUSIC_FILTERS = {
+  title: 'tracks.title',
+  artist: "COALESCE(NULLIF(tracks.artist, ''), NULLIF(tracks.album_artist, ''), 'Unknown')",
+  genre: 'tracks.genre',
+  year: 'tracks.recording_date',
+  bpm: 'tracks.bpm',
+  key: 'tracks.musical_key'
+};
+
+const MUSIC_SORTS = {
+  title: 'tracks.title',
+  artist: "COALESCE(NULLIF(tracks.artist, ''), NULLIF(tracks.album_artist, ''), 'Unknown')",
+  genre: 'tracks.genre',
+  year: 'tracks.recording_date',
+  bpm: 'tracks.bpm',
+  key: 'tracks.musical_key'
+};
+
 function createMusicCatalog(pool) {
   // The current catalog has one library root and stores track paths relative to it.
   async function listTracks() {
     const [tracks] = await pool.promise().query(LIST_TRACKS_QUERY);
     return tracks.map(({ MusicKey, ...track }) => ({ ...track, Key: MusicKey }));
+  }
+
+  async function listTracksPage({ page = 1, pageSize = 100, filters = {}, sortBy = 'title', sortOrder = 'asc' } = {}) {
+    const safePage = Math.max(1, Math.floor(Number(page) || 1));
+    const safePageSize = Math.min(200, Math.max(1, Math.floor(Number(pageSize) || 100)));
+    const safeSort = MUSIC_SORTS[sortBy] ? sortBy : 'title';
+    const direction = String(sortOrder).toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+    const conditions = [];
+    const values = [];
+
+    for (const [filter, column] of Object.entries(MUSIC_FILTERS)) {
+      const term = filters[filter];
+      if (typeof term === 'string' && term.trim()) {
+        conditions.push(`${column} LIKE ?`);
+        values.push(`%${term.trim().slice(0, 100)}%`);
+      }
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const [countRows] = await pool.promise().query(
+      `SELECT COUNT(*) AS total FROM tracks ${whereClause}`,
+      values
+    );
+    const total = Number(countRows[0].total);
+
+    const pageQuery = `${LIST_TRACKS_QUERY.replace('ORDER BY tracks.title', '')}
+      ${whereClause}
+      ORDER BY ${MUSIC_SORTS[safeSort]} ${direction}, tracks.relative_path ASC
+      LIMIT ? OFFSET ?`;
+    const offset = (safePage - 1) * safePageSize;
+    const [tracks] = await pool.promise().query(pageQuery, [...values, safePageSize, offset]);
+
+    return {
+      items: tracks.map(({ MusicKey, ...track }) => ({ ...track, Key: MusicKey })),
+      page: safePage,
+      pageSize: safePageSize,
+      total,
+      totalPages: Math.ceil(total / safePageSize)
+    };
   }
 
   async function updateTrackMetadata(relativePath, metadata) {
@@ -54,7 +111,7 @@ function createMusicCatalog(pool) {
     );
   }
 
-  return { listTracks, updateTrackMetadata };
+  return { listTracks, listTracksPage, updateTrackMetadata };
 }
 
 module.exports = createMusicCatalog;

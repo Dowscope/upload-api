@@ -21,6 +21,13 @@ The music catalog database is selected with `DB_MUSIC_DATABASE`.
 default is `/storage/Music`. The music playback endpoint adds this root to the
 relative filename supplied by the browser before requesting the file.
 
+`GET /api/list_music_page` queries the catalog in pages instead of returning
+all tracks. It accepts `page` (default `1`), `pageSize` (default `100`, maximum
+`200`), text filters `title`, `artist`, `genre`, `year`, `bpm`, and `key`, plus
+`sortBy` and `sortOrder`. The response contains `items`, `page`, `pageSize`,
+`total`, and `totalPages`. The existing `/api/list_music` route remains
+available for clients that still expect the complete array.
+
 `POST /api/updateMusicMetadata` accepts the track `filename`, metadata fields,
 and the logged-in user's `session_id` and `email`. It verifies the session,
 forwards the tag changes to the music server's `POST /api/update`, and updates

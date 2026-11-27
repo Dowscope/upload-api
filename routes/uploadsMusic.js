@@ -3,7 +3,7 @@ const fs = require('fs');
 const axios = require('axios');
 const path = require('path');
 
-module.exports = function register({ config, upload, createEntry, listTracks, updateTrackMetadata, verifySession }) {
+module.exports = function register({ config, upload, createEntry, listTracks, listTracksPage, updateTrackMetadata, verifySession }) {
   const router = express.Router();
   router.post('/uploads', upload, async (req, res) => {
     const result = await createEntry(req.file.originalname);
@@ -31,6 +31,34 @@ module.exports = function register({ config, upload, createEntry, listTracks, up
       res.json(await listTracks());
     } catch (error) {
       next(error);
+    }
+  });
+
+  router.get('/api/list_music_page', async (req, res, next) => {
+    const page = Number(req.query.page || 1);
+    const pageSize = Number(req.query.pageSize || 100);
+    if (!Number.isInteger(page) || page < 1 || !Number.isInteger(pageSize) || pageSize < 1) {
+      return res.status(400).json({ error: 'page and pageSize must be positive integers' });
+    }
+
+    const filters = {
+      title: req.query.title,
+      artist: req.query.artist,
+      genre: req.query.genre,
+      year: req.query.year,
+      bpm: req.query.bpm,
+      key: req.query.key
+    };
+    try {
+      return res.json(await listTracksPage({
+        page,
+        pageSize,
+        filters,
+        sortBy: req.query.sortBy,
+        sortOrder: req.query.sortOrder
+      }));
+    } catch (error) {
+      return next(error);
     }
   });
 
