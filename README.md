@@ -38,6 +38,10 @@ the corresponding catalog row after the music server succeeds. Editable fields
 include `title`, `artist`, `album`, `year`, `trackNumber`, `genre`, `bpm`, and
 `key`. The music server's file endpoint is `GET /api/file`.
 
+The webpage can increment music usage counters with `POST /api/recordMusicPlay`
+or `POST /api/recordMusicDownload`, each with `{ "filename": "relative/path.mp3" }`.
+Music list results include `PlayCount` and `DownloadCount`.
+
 ## Website deployment webhook
 
 `POST /updatesite` deploys the configured Vue repository when GitHub sends a

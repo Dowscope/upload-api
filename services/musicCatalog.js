@@ -5,6 +5,8 @@ const LIST_TRACKS_QUERY = `
     tracks.relative_path AS RelativePath,
     tracks.modified_at AS modified_at,
     tracks.modified_at AS ModifiedAt,
+    tracks.play_count AS PlayCount,
+    tracks.download_count AS DownloadCount,
     COALESCE(NULLIF(tracks.recording_date, ''), 'Unknown') AS Year,
     COALESCE(NULLIF(tracks.title, ''), 'Unknown') AS Title,
     COALESCE(NULLIF(tracks.artist, ''), NULLIF(tracks.album_artist, ''), 'Unknown') AS Author,
@@ -49,6 +51,33 @@ function createMusicCatalog(pool) {
   async function getTrackCount() {
     const [rows] = await pool.promise().query('SELECT COUNT(*) AS totalSongs FROM tracks');
     return Number(rows[0].totalSongs);
+  }
+
+  async function incrementTrackCounter(relativePath, counter) {
+    const allowedCounters = {
+      play: 'play_count',
+      download: 'download_count'
+    };
+    const column = allowedCounters[counter];
+    if (!column) throw new Error('Unsupported music counter');
+
+    const [result] = await pool.promise().query(
+      `UPDATE tracks SET \`${column}\` = COALESCE(\`${column}\`, 0) + 1 WHERE relative_path = ?`,
+      [relativePath]
+    );
+    if (result.affectedRows === 0) {
+      const [tracks] = await pool.promise().query(
+        'SELECT 1 FROM tracks WHERE relative_path = ? LIMIT 1',
+        [relativePath]
+      );
+      if (tracks.length === 0) throw new Error('Track was not found in the music catalog');
+    }
+
+    const [rows] = await pool.promise().query(
+      'SELECT play_count AS PlayCount, download_count AS DownloadCount FROM tracks WHERE relative_path = ? LIMIT 1',
+      [relativePath]
+    );
+    return rows[0];
   }
 
   async function listTracksPage({ page = 1, pageSize = 100, filters = {}, sortBy = 'modified', sortOrder = 'asc' } = {}) {
@@ -122,7 +151,7 @@ function createMusicCatalog(pool) {
     );
   }
 
-  return { listTracks, listTracksPage, getTrackCount, updateTrackMetadata };
+  return { listTracks, listTracksPage, getTrackCount, incrementTrackCounter, updateTrackMetadata };
 }
 
 module.exports = createMusicCatalog;

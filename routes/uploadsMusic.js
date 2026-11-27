@@ -3,7 +3,7 @@ const fs = require('fs');
 const axios = require('axios');
 const path = require('path');
 
-module.exports = function register({ config, upload, createEntry, listTracks, listTracksPage, getTrackCount, updateTrackMetadata, verifySession }) {
+module.exports = function register({ config, upload, createEntry, listTracks, listTracksPage, getTrackCount, incrementTrackCounter, updateTrackMetadata, verifySession }) {
   const router = express.Router();
   router.post('/uploads', upload, async (req, res) => {
     const result = await createEntry(req.file.originalname);
@@ -71,6 +71,31 @@ module.exports = function register({ config, upload, createEntry, listTracks, li
       return next(error);
     }
   });
+
+  async function recordMusicEvent(req, res, counter) {
+    const filename = req.body && (req.body.filename || req.body.Filename || req.body.RelativePath);
+    if (typeof filename !== 'string' || !filename.trim()) {
+      return res.status(400).json({ error: 'filename is required' });
+    }
+
+    const relativePath = path.posix.normalize(filename);
+    if (path.posix.isAbsolute(relativePath) || relativePath === '.' || relativePath === '..' || relativePath.startsWith('../')) {
+      return res.status(400).json({ error: 'filename must identify a file inside the music library' });
+    }
+
+    try {
+      const counts = await incrementTrackCounter(relativePath, counter);
+      return res.json({ success: true, ...counts });
+    } catch (error) {
+      if (error.message === 'Track was not found in the music catalog') {
+        return res.status(404).json({ error: error.message });
+      }
+      return res.status(500).json({ error: 'Could not update music counters' });
+    }
+  }
+
+  router.post('/api/recordMusicPlay', (req, res) => recordMusicEvent(req, res, 'play'));
+  router.post('/api/recordMusicDownload', (req, res) => recordMusicEvent(req, res, 'download'));
 
   router.get('/api/getMusicFile', async (req, res, next) => {
     const { filename } = req.query;
