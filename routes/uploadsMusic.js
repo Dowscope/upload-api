@@ -3,7 +3,7 @@ const fs = require('fs');
 const axios = require('axios');
 const path = require('path');
 
-module.exports = function register({ config, upload, createEntry, listTracks, listTracksPage, updateTrackMetadata, verifySession }) {
+module.exports = function register({ config, upload, createEntry, listTracks, listTracksPage, getTrackCount, updateTrackMetadata, verifySession }) {
   const router = express.Router();
   router.post('/uploads', upload, async (req, res) => {
     const result = await createEntry(req.file.originalname);
@@ -23,6 +23,14 @@ module.exports = function register({ config, upload, createEntry, listTracks, li
         res.send(jsonLst);
       }
     })
+  });
+
+  router.get('/status', async (req, res, next) => {
+    try {
+      return res.json({ totalSongs: await getTrackCount() });
+    } catch (error) {
+      return next(error);
+    }
   });
 
 

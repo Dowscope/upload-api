@@ -46,6 +46,11 @@ function createMusicCatalog(pool) {
     return tracks.map(({ MusicKey, ...track }) => ({ ...track, Key: MusicKey }));
   }
 
+  async function getTrackCount() {
+    const [rows] = await pool.promise().query('SELECT COUNT(*) AS totalSongs FROM tracks');
+    return Number(rows[0].totalSongs);
+  }
+
   async function listTracksPage({ page = 1, pageSize = 100, filters = {}, sortBy = 'modified', sortOrder = 'asc' } = {}) {
     const safePage = Math.max(1, Math.floor(Number(page) || 1));
     const safePageSize = Math.min(200, Math.max(1, Math.floor(Number(pageSize) || 100)));
@@ -117,7 +122,7 @@ function createMusicCatalog(pool) {
     );
   }
 
-  return { listTracks, listTracksPage, updateTrackMetadata };
+  return { listTracks, listTracksPage, getTrackCount, updateTrackMetadata };
 }
 
 module.exports = createMusicCatalog;

@@ -28,6 +28,7 @@ all tracks. It accepts `page` (default `1`), `pageSize` (default `100`, maximum
 `total`, and `totalPages`. Each item includes `ModifiedAt`, the last time the
 track was added to the database or modified. The existing `/api/list_music`
 route remains available for clients that still expect the complete array.
+`GET /status` returns the catalog size as `{ "totalSongs": number }`.
 
 `POST /api/updateMusicMetadata` accepts the track `filename`, metadata fields,
 and the logged-in user's `session_id` and `email`. It verifies the session,
