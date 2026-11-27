@@ -3,7 +3,7 @@ const fs = require('fs');
 const axios = require('axios');
 const path = require('path');
 
-module.exports = function register({ config, upload, createEntry, listTracks, listTracksPage, getTrackCount, getTopTracks, incrementTrackCounter, updateTrackMetadata, verifySession }) {
+module.exports = function register({ config, upload, createEntry, listTracks, listTracksPage, getTrackCount, getTopTracks, incrementTrackCounter, updateTrackMetadata, verifyAdminSession }) {
   const router = express.Router();
   router.post('/uploads', upload, async (req, res) => {
     const result = await createEntry(req.file.originalname);
@@ -158,6 +158,15 @@ module.exports = function register({ config, upload, createEntry, listTracks, li
     if (!session_id || !email) {
       return res.status(401).json({ error: 'A valid user session is required' });
     }
+
+    const auth = await verifyAdminSession(session_id, email);
+    if (!auth || !auth.success) {
+      return res.status(401).json({ error: 'Invalid or expired user session' });
+    }
+    if (!auth.isAdmin) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
     if (typeof filename !== 'string' || !filename.trim()) {
       return res.status(400).json({ error: 'filename is required' });
     }
@@ -165,11 +174,6 @@ module.exports = function register({ config, upload, createEntry, listTracks, li
     const relativePath = path.posix.normalize(filename);
     if (path.posix.isAbsolute(relativePath) || relativePath === '.' || relativePath === '..' || relativePath.startsWith('../')) {
       return res.status(400).json({ error: 'filename must identify a file inside the music library' });
-    }
-
-    const auth = await verifySession(session_id, email);
-    if (!auth || !auth.success) {
-      return res.status(401).json({ error: 'Invalid or expired user session' });
     }
 
     const tags = {};

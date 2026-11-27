@@ -1,6 +1,6 @@
 const mysql = require('mysql2');
 
-const validateSessionQuery = 'SELECT s.user_id FROM sessionstore s JOIN USERS u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE() AND s.status = 1 AND u.email = ?';
+const validateSessionQuery = 'SELECT s.user_id, u.user_type_id FROM sessionstore s JOIN USERS u ON u.userid = s.user_id WHERE s.session = ? AND s.expire_date > CURDATE() AND s.status = 1 AND u.email = ?';
 
 function createPools(config) {
   const connection = {

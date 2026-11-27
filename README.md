@@ -35,11 +35,16 @@ tracks with nonzero counts, ordered by the corresponding count. Their response
 items contain track metadata only; the count is used for ranking but omitted.
 
 `POST /api/updateMusicMetadata` accepts the track `filename`, metadata fields,
-and the logged-in user's `session_id` and `email`. It verifies the session,
+and the logged-in user's `session_id` and `email`. It verifies the session and
+requires `user_type_id = 1` for admin access (`2` is a regular user). It then
 forwards the tag changes to the music server's `POST /api/update`, and updates
 the corresponding catalog row after the music server succeeds. Editable fields
 include `title`, `artist`, `album`, `year`, `trackNumber`, `genre`, `bpm`, and
 `key`. The music server's file endpoint is `GET /api/file`.
+
+`POST /api/getUsers` requires `session_id` and `email` in the JSON body and
+returns basic user fields (`userid`, `email`, `first_name`, `last_name`, and
+`user_type_id`). It uses the same admin check and does not return passwords.
 
 The webpage can increment music usage counters with `POST /api/recordMusicPlay`
 or `POST /api/recordMusicDownload`, each with `{ "filename": "relative/path.mp3" }`.

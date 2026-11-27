@@ -1,8 +1,34 @@
 const express = require("express");
 const crypto = require('crypto');
 
-module.exports = function register({ pool, pool_main, config, validateSessionQuery, hashPassword, verifyPassword, isValidEmail }) {
+module.exports = function register({ pool, pool_main, config, validateSessionQuery, hashPassword, verifyPassword, isValidEmail, verifyAdminSession }) {
   const router = express.Router();
+
+  router.post('/api/getUsers', async (req, res) => {
+    const { session_id, email } = req.body || {};
+    if (!session_id || !email) {
+      return res.status(401).json({ error: 'A valid user session is required' });
+    }
+
+    try {
+      const auth = await verifyAdminSession(session_id, email);
+      if (!auth || !auth.success) {
+        return res.status(401).json({ error: 'Invalid or expired user session' });
+      }
+      if (!auth.isAdmin) {
+        return res.status(403).json({ error: 'Not authorized' });
+      }
+
+      const [users] = await pool_main.promise().query(
+        'SELECT userid, email, first_name, last_name, user_type_id FROM USERS ORDER BY first_name, last_name, email'
+      );
+      return res.json({ success: true, users });
+    } catch (error) {
+      console.error('Failed to retrieve users:', error.message);
+      return res.status(500).json({ error: 'Failed to retrieve users' });
+    }
+  });
+
   // *********************************
   // Add User
   // *********************************

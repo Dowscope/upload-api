@@ -43,13 +43,26 @@ function createAuthServices({ pool, saltRounds, validateSessionQuery }) {
             console.log(groupMsg);
             return reject({ success: false, reason: groupMsg });
           }
-          return resolve({ success: true, reason: msg, groups: groupResults.map(row => row.group_id) });
+          return resolve({
+            success: true,
+            reason: msg,
+            groups: groupResults.map(row => Number(row.group_id)),
+            userTypeId: Number(results[0].user_type_id)
+          });
         });
       });
     });
   }
 
-  return { hashPassword, verifyPassword, isValidEmail, verifySession };
+  async function verifyAdminSession(sessionId, email) {
+    const session = await verifySession(sessionId, email);
+    if (!session.success) return { ...session, isAdmin: false };
+
+    const isAdmin = session.userTypeId === 1;
+    return { ...session, isAdmin };
+  }
+
+  return { hashPassword, verifyPassword, isValidEmail, verifySession, verifyAdminSession };
 }
 
 module.exports = createAuthServices;
