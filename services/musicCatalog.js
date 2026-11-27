@@ -53,6 +53,24 @@ function createMusicCatalog(pool) {
     return Number(rows[0].totalSongs);
   }
 
+  async function getTopTracks(counter) {
+    const counterColumns = {
+      play: 'play_count',
+      download: 'download_count'
+    };
+    const column = counterColumns[counter];
+    if (!column) throw new Error('Unsupported music counter');
+
+    const query = LIST_TRACKS_QUERY
+      .replace(/\s*tracks\.play_count AS PlayCount,\n\s*tracks\.download_count AS DownloadCount,/, '')
+      .replace(
+        'ORDER BY tracks.title',
+        `WHERE tracks.${column} > 0 ORDER BY tracks.${column} DESC, tracks.title ASC, tracks.relative_path ASC LIMIT 10`
+      );
+    const [tracks] = await pool.promise().query(query);
+    return tracks.map(({ MusicKey, ...track }) => ({ ...track, Key: MusicKey }));
+  }
+
   async function incrementTrackCounter(relativePath, counter) {
     const allowedCounters = {
       play: 'play_count',
@@ -151,7 +169,7 @@ function createMusicCatalog(pool) {
     );
   }
 
-  return { listTracks, listTracksPage, getTrackCount, incrementTrackCounter, updateTrackMetadata };
+  return { listTracks, listTracksPage, getTrackCount, getTopTracks, incrementTrackCounter, updateTrackMetadata };
 }
 
 module.exports = createMusicCatalog;

@@ -30,6 +30,9 @@ track was added to the database or modified. The existing `/api/list_music`
 route remains available for clients that still expect the complete array.
 `GET /api/status` returns the catalog size as `{ "totalSongs": number }`.
 `/status` is also available when calling the API server directly.
+`GET /api/top_played` and `GET /api/top_downloaded` each return up to ten
+tracks with nonzero counts, ordered by the corresponding count. Their response
+items contain track metadata only; the count is used for ranking but omitted.
 
 `POST /api/updateMusicMetadata` accepts the track `filename`, metadata fields,
 and the logged-in user's `session_id` and `email`. It verifies the session,

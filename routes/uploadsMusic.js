@@ -3,7 +3,7 @@ const fs = require('fs');
 const axios = require('axios');
 const path = require('path');
 
-module.exports = function register({ config, upload, createEntry, listTracks, listTracksPage, getTrackCount, incrementTrackCounter, updateTrackMetadata, verifySession }) {
+module.exports = function register({ config, upload, createEntry, listTracks, listTracksPage, getTrackCount, getTopTracks, incrementTrackCounter, updateTrackMetadata, verifySession }) {
   const router = express.Router();
   router.post('/uploads', upload, async (req, res) => {
     const result = await createEntry(req.file.originalname);
@@ -67,6 +67,22 @@ module.exports = function register({ config, upload, createEntry, listTracks, li
         sortBy: req.query.sortBy,
         sortOrder: req.query.sortOrder
       }));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get('/api/top_played', async (req, res, next) => {
+    try {
+      return res.json(await getTopTracks('play'));
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.get('/api/top_downloaded', async (req, res, next) => {
+    try {
+      return res.json(await getTopTracks('download'));
     } catch (error) {
       return next(error);
     }
