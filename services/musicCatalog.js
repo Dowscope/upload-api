@@ -25,7 +25,36 @@ function createMusicCatalog(pool) {
     return tracks.map(({ MusicKey, ...track }) => ({ ...track, Key: MusicKey }));
   }
 
-  return { listTracks };
+  async function updateTrackMetadata(relativePath, metadata) {
+    const columns = {
+      title: metadata.title,
+      artist: metadata.artist,
+      album_artist: metadata.artist,
+      album: metadata.album,
+      recording_date: metadata.year,
+      genre: metadata.genre,
+      bpm: metadata.bpm,
+      musical_key: metadata.key
+    };
+    const updates = Object.entries(columns).filter(([, value]) => value !== undefined);
+    if (updates.length === 0) return;
+
+    const [tracks] = await pool.promise().query(
+      'SELECT 1 FROM tracks WHERE relative_path = ? LIMIT 1',
+      [relativePath]
+    );
+    if (tracks.length === 0) throw new Error('Track was not found in the music catalog');
+
+    const setClause = updates.map(([column]) => `\`${column}\` = ?`).join(', ');
+    const values = updates.map(([, value]) => value);
+    values.push(relativePath);
+    await pool.promise().query(
+      `UPDATE tracks SET ${setClause} WHERE relative_path = ?`,
+      values
+    );
+  }
+
+  return { listTracks, updateTrackMetadata };
 }
 
 module.exports = createMusicCatalog;

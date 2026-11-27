@@ -3,7 +3,7 @@ const fs = require('fs');
 const axios = require('axios');
 const path = require('path');
 
-module.exports = function register({ config, upload, createEntry, listTracks }) {
+module.exports = function register({ config, upload, createEntry, listTracks, updateTrackMetadata, verifySession }) {
   const router = express.Router();
   router.post('/uploads', upload, async (req, res) => {
     const result = await createEntry(req.file.originalname);
@@ -47,7 +47,7 @@ module.exports = function register({ config, upload, createEntry, listTracks }) 
     }
 
     console.log(`Getting Music File: ${filePath}`);
-    const url = `http://${config.servers.music}/file`;
+    const url = `http://${config.servers.music}/api/file`;
     try {
       const upstream = await axios.get(url, {
         params: { filename: filePath },
@@ -68,6 +68,74 @@ module.exports = function register({ config, upload, createEntry, listTracks }) 
       upstream.data.pipe(res);
     } catch (error) {
       next(error);
+    }
+  });
+
+  router.post('/api/updateMusicMetadata', async (req, res) => {
+    const { session_id, email } = req.body || {};
+    const filename = req.body && (req.body.filename || req.body.Filename || req.body.RelativePath);
+    const metadata = req.body && (req.body.metadata || req.body);
+
+    if (!session_id || !email) {
+      return res.status(401).json({ error: 'A valid user session is required' });
+    }
+    if (typeof filename !== 'string' || !filename.trim()) {
+      return res.status(400).json({ error: 'filename is required' });
+    }
+
+    const relativePath = path.posix.normalize(filename);
+    if (path.posix.isAbsolute(relativePath) || relativePath === '.' || relativePath === '..' || relativePath.startsWith('../')) {
+      return res.status(400).json({ error: 'filename must identify a file inside the music library' });
+    }
+
+    const auth = await verifySession(session_id, email);
+    if (!auth || !auth.success) {
+      return res.status(401).json({ error: 'Invalid or expired user session' });
+    }
+
+    const tags = {};
+    const fieldMap = {
+      title: ['title', 'Title'],
+      artist: ['artist', 'Artist', 'Author'],
+      album: ['album', 'Album'],
+      year: ['year', 'Year'],
+      trackNumber: ['trackNumber', 'TrackNumber'],
+      genre: ['genre', 'Genre'],
+      bpm: ['bpm', 'BPM'],
+      key: ['key', 'Key', 'MusicKey']
+    };
+    for (const [tag, keys] of Object.entries(fieldMap)) {
+      const value = keys.map(key => metadata[key]).find(value => value !== undefined);
+      if (value !== undefined) tags[tag] = value;
+    }
+    if (Object.keys(tags).length === 0) {
+      return res.status(400).json({ error: 'No editable metadata fields were provided' });
+    }
+
+    try {
+      const upstream = await axios.post(`http://${config.servers.music}/api/update`, {
+        filename: relativePath,
+        ...tags
+      }, { timeout: 30000 });
+
+      try {
+        await updateTrackMetadata(relativePath, tags);
+      } catch (error) {
+        console.error('MP3 tags were updated, but the music catalog update failed:', error.message);
+        return res.status(500).json({
+          error: 'The file tags were updated, but the catalog could not be updated',
+          fileUpdated: true,
+          catalogUpdated: false
+        });
+      }
+
+      return res.json({
+        success: true,
+        updated: upstream.data && upstream.data.updated ? upstream.data.updated : Object.keys(tags)
+      });
+    } catch (error) {
+      console.error('Music metadata update failed:', error.message);
+      return res.status(502).json({ error: 'Music server could not update the file metadata' });
     }
   });
   return router;

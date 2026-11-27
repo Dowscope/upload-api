@@ -21,6 +21,13 @@ The music catalog database is selected with `DB_MUSIC_DATABASE`.
 default is `/storage/Music`. The music playback endpoint adds this root to the
 relative filename supplied by the browser before requesting the file.
 
+`POST /api/updateMusicMetadata` accepts the track `filename`, metadata fields,
+and the logged-in user's `session_id` and `email`. It verifies the session,
+forwards the tag changes to the music server's `POST /api/update`, and updates
+the corresponding catalog row after the music server succeeds. Editable fields
+include `title`, `artist`, `album`, `year`, `trackNumber`, `genre`, `bpm`, and
+`key`. The music server's file endpoint is `GET /api/file`.
+
 ## Website deployment webhook
 
 `POST /updatesite` deploys the configured Vue repository when GitHub sends a
