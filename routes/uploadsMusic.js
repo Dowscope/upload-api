@@ -25,13 +25,15 @@ module.exports = function register({ config, upload, createEntry, listTracks, li
     })
   });
 
-  router.get('/status', async (req, res, next) => {
+  const musicStatusHandler = async (req, res, next) => {
     try {
       return res.json({ totalSongs: await getTrackCount() });
     } catch (error) {
       return next(error);
     }
-  });
+  };
+  router.get('/status', musicStatusHandler);
+  router.get('/api/status', musicStatusHandler);
 
 
   router.get('/api/list_music', async (req, res, next) => {
