@@ -3,6 +3,7 @@ const LIST_TRACKS_QUERY = `
     tracks.relative_path AS Filename,
     CONCAT(TRIM(TRAILING '/' FROM library.root), '/', tracks.relative_path) AS Path,
     tracks.relative_path AS RelativePath,
+    tracks.modified_at AS ModifiedAt,
     COALESCE(NULLIF(tracks.recording_date, ''), 'Unknown') AS Year,
     COALESCE(NULLIF(tracks.title, ''), 'Unknown') AS Title,
     COALESCE(NULLIF(tracks.artist, ''), NULLIF(tracks.album_artist, ''), 'Unknown') AS Author,
@@ -102,7 +103,10 @@ function createMusicCatalog(pool) {
     );
     if (tracks.length === 0) throw new Error('Track was not found in the music catalog');
 
-    const setClause = updates.map(([column]) => `\`${column}\` = ?`).join(', ');
+    const setClause = [
+      ...updates.map(([column]) => `\`${column}\` = ?`),
+      '`modified_at` = CURRENT_TIMESTAMP'
+    ].join(', ');
     const values = updates.map(([, value]) => value);
     values.push(relativePath);
     await pool.promise().query(
